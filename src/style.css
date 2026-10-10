@@ -27,3 +27,317 @@
     --shadow: rgba(0, 0, 0, 0.5);
   }
 }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.stage {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+}
+
+/* Inline SVG in index.html. */
+.logo {
+  display: block;
+  overflow: visible;
+}
+.logo .ink {
+  fill: var(--text);
+}
+.logo .slash {
+  fill: var(--accent);
+}
+
+/* Big border around the mark: thick round stroke that merges the letters. */
+.outline-shape {
+  stroke-width: 40;
+  stroke-linejoin: round;
+}
+.outline-base {
+  fill: var(--surface);
+  stroke: var(--border);
+}
+
+/* Shimmer: a skewed accent band sweeps across, in step with the grid's waiting
+   state. The border lags the mark slightly so the two read as separate layers. */
+.sheen {
+  translate: -400px 0;
+  transform: skewX(-20deg);
+  opacity: 0.55;
+}
+.sheen--outline {
+  opacity: 0.35;
+}
+body:has(.grid[data-state='waiting']) .sheen {
+  animation: sheen 3.2s linear infinite;
+}
+body:has(.grid[data-state='waiting']) .sheen--outline {
+  animation-delay: -0.35s;
+}
+
+@keyframes sheen {
+  from {
+    translate: -400px 0;
+  }
+  to {
+    translate: 700px 0;
+  }
+}
+
+/* ---------- Page grid ---------- */
+
+/* Registered so the browser can animate them inside gradients. */
+@property --p {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 100%;
+}
+@property --glow {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+@property --r {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+@property --shimmer {
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 0px;
+}
+
+.grid {
+  --line: var(--border);
+  --trail: 70px; /* how far the accent oozes back from the drawing tip */
+  --band: 140px; /* half-width of the waiting shimmer */
+  --draw-ease: cubic-bezier(0.65, 0, 0.35, 1);
+
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.grid-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: var(--line);
+}
+
+.grid-line--v {
+  --dir: to bottom;
+  width: 1px;
+  height: 100%;
+  translate: calc(var(--cell) * var(--index)) 0;
+}
+
+.grid-line--h {
+  --dir: to right;
+  width: 100%;
+  height: 1px;
+  translate: 0 calc(var(--cell) * var(--index));
+}
+
+/* The glowing tip that rides the end of a line while it draws. */
+.grid-line::after {
+  content: '';
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 10px 3px var(--accent-border);
+  opacity: var(--glow);
+}
+.grid-line--h::after {
+  top: 50%;
+  left: var(--p);
+  translate: -50% -50%;
+}
+.grid-line--v::after {
+  left: 50%;
+  top: var(--p);
+  translate: -50% -50%;
+}
+
+/* loading: lines start at random offsets and all finish together. Behind the
+   tip the accent oozes into the line and fades back to the line colour. */
+.grid[data-state='loading'] .grid-line {
+  background: linear-gradient(
+    var(--dir),
+    var(--line) calc(var(--p) - var(--trail)),
+    color-mix(in srgb, var(--accent) calc(var(--glow) * 100%), var(--line)) var(--p),
+    transparent var(--p)
+  );
+  animation:
+    draw-p var(--duration) var(--draw-ease) var(--delay) both,
+    draw-glow var(--duration) linear var(--delay) both;
+}
+
+@keyframes draw-p {
+  from {
+    --p: 0%;
+  }
+}
+@keyframes draw-glow {
+  0% {
+    --glow: 0;
+  }
+  15%,
+  75% {
+    --glow: 1;
+  }
+  100% {
+    --glow: 0;
+  }
+}
+
+/* waiting: fully drawn, content late; one diagonal band of accent sweeps across
+   the whole grid. --shimmer is the band's position on the screen's x + y axis,
+   animated once on .grid; each line shifts it by its own offset so the band
+   lines up across all lines (--span is set from JS). */
+.grid[data-state='waiting'] {
+  animation: shimmer 3.2s linear infinite;
+}
+
+.grid[data-state='waiting'] .grid-line {
+  --pos: calc(var(--shimmer) - var(--cell) * var(--index));
+  background:
+    linear-gradient(
+      var(--dir),
+      transparent calc(var(--pos) - var(--band)),
+      color-mix(in srgb, var(--accent-border) 18%, transparent) calc(var(--pos) - var(--band) * 0.6),
+      color-mix(in srgb, var(--accent-border) 60%, transparent) calc(var(--pos) - var(--band) * 0.25),
+      var(--accent-border) var(--pos),
+      color-mix(in srgb, var(--accent-border) 60%, transparent) calc(var(--pos) + var(--band) * 0.25),
+      color-mix(in srgb, var(--accent-border) 18%, transparent) calc(var(--pos) + var(--band) * 0.6),
+      transparent calc(var(--pos) + var(--band))
+    ),
+    var(--line);
+}
+
+@keyframes shimmer {
+  from {
+    --shimmer: calc(var(--band) * -1);
+  }
+  to {
+    --shimmer: calc(var(--span) + var(--band));
+  }
+}
+
+/* filled: drawn and ready; rests as the backdrop in the plain line colour.
+   Entering it fires the "ready" blast: a ring of accent expands from the centre
+   and lights the grid lines as it passes, with a fading trail behind it.
+   The overlay is masked to the exact line pattern of the grid, so only the
+   lines glow, not the cells. */
+.grid::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  /* Mask only reads alpha; the colour here is irrelevant to the result. */
+  --mask-line: var(--text);
+  -webkit-mask:
+    repeating-linear-gradient(to right, var(--mask-line) 0 1px, transparent 1px var(--cell)),
+    repeating-linear-gradient(to bottom, var(--mask-line) 0 1px, transparent 1px var(--cell));
+  mask:
+    repeating-linear-gradient(to right, var(--mask-line) 0 1px, transparent 1px var(--cell)),
+    repeating-linear-gradient(to bottom, var(--mask-line) 0 1px, transparent 1px var(--cell));
+  -webkit-mask-composite: source-over;
+  mask-composite: add;
+  background: radial-gradient(
+    circle at 50% 50%,
+    transparent calc(var(--r) - 360px),
+    color-mix(in srgb, var(--accent) 35%, transparent) calc(var(--r) - 90px),
+    var(--accent) var(--r),
+    transparent calc(var(--r) + 28px)
+  );
+}
+
+.grid[data-state='filled']::after {
+  animation:
+    blast-ring 1.4s cubic-bezier(0.2, 0.7, 0.2, 1) both,
+    blast-fade 1.4s linear both;
+}
+
+@keyframes blast-ring {
+  from {
+    --r: 0px;
+  }
+  to {
+    --r: calc(var(--span) / 2 + 400px);
+  }
+}
+@keyframes blast-fade {
+  0% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sheen {
+    animation: none !important;
+    display: none;
+  }
+  .grid[data-state='waiting'] {
+    animation: none;
+  }
+  .grid[data-state='waiting'] .grid-line {
+    background: var(--accent-border);
+  }
+  .grid[data-state='filled']::after {
+    animation: none;
+  }
+}
+
+/* ---------- Dev overlay (?grid) ---------- */
+
+.grid-debug {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 10;
+  pointer-events: none;
+  font: 11px/1 ui-monospace, monospace;
+  color: var(--text-muted);
+}
+.grid-debug-cell {
+  position: absolute;
+  box-sizing: border-box;
+  border: 1px solid var(--accent-border);
+  padding: 3px;
+}
+.grid-debug-cell[data-kind='header'] {
+  background: var(--accent-bg);
+}
+.grid-debug-cell[data-kind='spare'] {
+  background: var(--shadow);
+}
+.grid-debug-info {
+  position: fixed;
+  left: 8px;
+  bottom: 8px;
+  margin: 0;
+  padding: 8px 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
