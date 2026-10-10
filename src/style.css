@@ -1,31 +1,49 @@
+/* Every token is light-dark(light, dark), so the theme is only the root's
+   color-scheme: the system's by default, or the header toggle's pick
+   (data-theme on <html>, see src/theme.js). */
 :root {
-  --bg: #fdf6e0;
-  --surface: #efe2bc;
-  --border: #d6c79a;
-  --text: #302b2b;
-  --text-muted: #6e6666;
-  --accent: #7a35d6;
-  --on-accent: #fdf6e0;
-  --accent-bg: rgba(122, 53, 214, 0.12);
-  --accent-border: rgba(122, 53, 214, 0.45);
-  --shadow: rgba(48, 43, 43, 0.15);
-
   color-scheme: light dark;
+
+  --bg: light-dark(#fdf6e0, #1e1a1a);
+  --surface: light-dark(#efe2bc, #2a2525);
+  --border: light-dark(#d6c79a, #3a3434);
+  --text: light-dark(#302b2b, #ede6d3);
+  --text-muted: light-dark(#6e6666, #a69e92);
+  --accent: light-dark(#7a35d6, #bc7bf9);
+  --on-accent: light-dark(#fdf6e0, #1e1a1a);
+  --accent-bg: light-dark(rgba(122, 53, 214, 0.12), rgba(188, 123, 249, 0.16));
+  --accent-border: light-dark(rgba(122, 53, 214, 0.45), rgba(188, 123, 249, 0.45));
+  --shadow: light-dark(rgba(48, 43, 43, 0.15), rgba(0, 0, 0, 0.5));
+
+  /* Temporary mock-content tones; removed when real content arrives. */
+  --mock-1: light-dark(#c9b6ee, #5a4580);
+  --mock-2: light-dark(#e9b99a, #7a5238);
+  --mock-3: light-dark(#a9cfae, #3f6445);
+  --mock-4: light-dark(#9fc3df, #3a5c78);
+  --mock-5: light-dark(#e6cf8f, #7a6a30);
+}
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+:root[data-theme='dark'] {
+  color-scheme: dark;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #1e1a1a;
-    --surface: #2a2525;
-    --border: #3a3434;
-    --text: #ede6d3;
-    --text-muted: #a69e92;
-    --accent: #bc7bf9;
-    --on-accent: #1e1a1a;
-    --accent-bg: rgba(188, 123, 249, 0.16);
-    --accent-border: rgba(188, 123, 249, 0.45);
-    --shadow: rgba(0, 0, 0, 0.5);
-  }
+/* Theme change (src/theme.js): no cross-fade; the new theme is revealed through
+   --ink, an animated SVG mask made per click that spreads like ink in water. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+::view-transition-new(root) {
+  mask: var(--ink) 0 0 / 100% 100% no-repeat;
+}
+
+/* The scrollbar's space is always reserved, so the grid is measured with the
+   same width before and after the page gets tall (no overflow: hidden). */
+html {
+  overflow-y: scroll;
 }
 
 body {
@@ -34,19 +52,246 @@ body {
   color: var(--text);
 }
 
-.stage {
-  position: relative;
-  z-index: 1;
-  min-height: 100vh;
-  min-height: 100dvh;
-  display: grid;
-  place-items: center;
+/* ---------- Chrome: the fixed layer holding the logo and the header island ---------- */
+
+/* --hide slides the island (and the logo in it) up out of view. */
+@property --hide {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0;
+}
+
+.chrome {
+  --island-h: 48px;
+  --island-top: 12px;
+  --hide-dist: -80px;
+  /* The island follows the row height (set from JS), and its text follows the island. */
+  --island-font: clamp(14px, calc(var(--island-h) * 0.25), 24px);
+  --lx: 0px;
+  --ly: 0px;
+  --ls: 1;
+  --outline: 1;
+  --fill: 0;
+  --hide: 0;
+
+  position: fixed;
+  inset: 0;
+  z-index: 6;
+  pointer-events: none; /* only its children take pointer events */
+  transition: --hide 250ms ease;
+}
+.chrome[data-hidden] {
+  --hide: 1;
+}
+
+/* The logo is centred at hero size and moved into the island's logo slot from JS. */
+.logo-link {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  display: block;
+  line-height: 0;
+  border-radius: 8px;
+  z-index: 1; /* above the island's fill, so the logo shows inside it */
+  transform: translate(-50%, -50%) translate(var(--lx), calc(var(--ly) + var(--hide) * var(--hide-dist))) scale(var(--ls));
+}
+.chrome[data-live] .logo-link {
+  pointer-events: auto;
 }
 
 /* Inline SVG in index.html. */
 .logo {
   display: block;
   overflow: visible;
+}
+/* The big outline fades as the logo shrinks into the island. */
+.logo .outline-base,
+.logo .outline-wrap {
+  opacity: var(--outline);
+}
+
+.island {
+  position: fixed;
+  top: var(--island-top);
+  left: 0;
+  right: 0;
+  margin-inline: auto;
+  width: max-content;
+  height: var(--island-h);
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding-inline: calc(var(--island-h) * 0.4);
+  border-radius: 999px;
+  pointer-events: auto;
+  transform: translateY(calc(var(--hide) * var(--hide-dist)));
+}
+/* Fill fades in behind the titles; the outline is drawn over it. */
+.island::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--surface);
+  opacity: var(--fill);
+}
+.island-outline {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+.island-line {
+  fill: none;
+  stroke: var(--border);
+  stroke-width: 1;
+}
+.island-tip {
+  fill: var(--accent);
+  filter: drop-shadow(0 0 4px var(--accent-border));
+  opacity: 0;
+}
+/* The logo lands here: the same aspect ratio as the logo's viewBox. */
+.island-slot {
+  position: relative;
+  width: calc(var(--island-h) * 0.6 * 660 / 272);
+  height: calc(var(--island-h) * 0.6);
+  margin-right: calc(var(--island-h) * 0.15);
+}
+/* Wide screens: the links are plain flex items of the island. */
+.island-links {
+  display: contents;
+}
+.island-toggle {
+  display: none;
+}
+
+/* Compact (the titles do not fit): logo and the current title; tap to open the rest. */
+.island[data-compact] .island-toggle {
+  --o: 0;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.55em;
+  height: 100%;
+  padding: 0 calc(var(--island-h) * 0.3);
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: 500 var(--island-font) / 1 system-ui, sans-serif;
+  cursor: pointer;
+  opacity: var(--o);
+}
+.island[data-compact] .island-toggle::after {
+  content: '';
+  width: 0.42em;
+  height: 0.42em;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  rotate: 45deg;
+  translate: 0 -0.14em;
+}
+.island[data-compact][data-open] .island-toggle::after {
+  rotate: 225deg;
+  translate: 0 0.14em;
+}
+.island[data-compact] .island-links {
+  display: none;
+}
+.island[data-compact][data-open] .island-links {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--island-h) * 0.5);
+  background: var(--surface);
+}
+.island[data-compact][data-open] .island-link {
+  justify-content: center;
+  height: calc(var(--island-h) * 0.85);
+}
+.island-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+  border-radius: 999px;
+}
+
+.island-link {
+  --o: 0;
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding-inline: calc(var(--island-h) * 0.3);
+  color: var(--text);
+  font: 500 var(--island-font) / 1 system-ui, sans-serif;
+  text-decoration: none;
+  opacity: var(--o);
+  translate: 0 calc((1 - var(--o)) * 6px);
+}
+.island-link[aria-current] {
+  color: var(--accent);
+}
+.island-link:hover {
+  color: var(--accent);
+}
+.island-link:focus-visible,
+.logo-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Theme toggle: the island's last item, after a thin divider. Shows the moon
+   in light mode and the sun in dark mode (aria-pressed = dark). */
+.island-theme {
+  --o: 0;
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: calc(var(--island-h) * 0.8);
+  height: 100%;
+  margin-left: calc(var(--island-h) * 0.1);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text);
+  cursor: pointer;
+  opacity: var(--o);
+  translate: 0 calc((1 - var(--o)) * 6px);
+}
+.island-theme::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 30%;
+  bottom: 30%;
+  border-left: 1px solid var(--border);
+}
+.island-theme svg {
+  width: calc(var(--island-h) * 0.38);
+  height: auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.island-theme[aria-pressed='true'] .theme-moon,
+.island-theme[aria-pressed='false'] .theme-sun {
+  display: none;
+}
+.island-theme:hover {
+  color: var(--accent);
+}
+.island-theme:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+  border-radius: 999px;
 }
 .logo .ink {
   fill: var(--text);
@@ -75,10 +320,10 @@ body {
 .sheen--outline {
   opacity: 0.35;
 }
-body:has(.grid[data-state='waiting']) .sheen {
+body:has([data-section='loading'][data-state='waiting']) .sheen {
   animation: sheen 3.2s linear infinite;
 }
-body:has(.grid[data-state='waiting']) .sheen--outline {
+body:has([data-section='loading'][data-state='waiting']) .sheen--outline {
   animation-delay: -0.35s;
 }
 
@@ -91,7 +336,79 @@ body:has(.grid[data-state='waiting']) .sheen--outline {
   }
 }
 
-/* ---------- Page grid ---------- */
+/* ---------- Scroll hint ---------- */
+
+/* --show eases in once loading is done; --fade follows the scroll (set from JS). */
+@property --show {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+
+.scroll-hint {
+  --fade: 1;
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  translate: -50% 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+  color: var(--text-muted);
+  font: 12px/1 ui-monospace, monospace;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: calc(var(--show) * var(--fade));
+  transition: --show 0.6s ease;
+}
+.scroll-hint[data-show] {
+  --show: 1;
+}
+.scroll-hint i {
+  position: relative;
+  width: 1px;
+  height: 32px;
+  background: var(--border);
+  overflow: hidden;
+}
+.scroll-hint i::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1px;
+  height: 12px;
+  background: var(--accent);
+  animation: hint-drop 1.6s ease-in-out infinite;
+}
+@keyframes hint-drop {
+  from {
+    translate: 0 -12px;
+  }
+  to {
+    translate: 0 32px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .scroll-hint i::after {
+    animation: none;
+  }
+  /* No travelling logo and no sliding island: the header fades between its states. */
+  .chrome {
+    transition: none;
+  }
+  .chrome > * {
+    transition: opacity 150ms ease;
+  }
+  .chrome[data-fading] > * {
+    opacity: 0;
+  }
+}
+
+/* ---------- Section grid ---------- */
 
 /* Registered so the browser can animate them inside gradients. */
 @property --p {
@@ -119,34 +436,43 @@ body:has(.grid[data-state='waiting']) .sheen--outline {
   --line: var(--border);
   --trail: 70px; /* how far the accent oozes back from the drawing tip */
   --band: 140px; /* half-width of the waiting shimmer */
-  --draw-ease: cubic-bezier(0.65, 0, 0.35, 1);
 
-  position: fixed;
+  position: absolute;
   inset: 0;
   overflow: hidden;
   pointer-events: none;
-  z-index: 0;
 }
 
+/* Position, length and the blast centre are set per line from JS (pixel-rounded). */
 .grid-line {
   position: absolute;
-  top: 0;
-  left: 0;
   background: var(--line);
 }
-
-.grid-line--v {
-  --dir: to bottom;
-  width: 1px;
-  height: 100%;
-  translate: calc(var(--cell) * var(--index)) 0;
-}
-
 .grid-line--h {
   --dir: to right;
-  width: 100%;
+  left: 0;
   height: 1px;
-  translate: 0 calc(var(--cell) * var(--index));
+}
+.grid-line--v {
+  --dir: to bottom;
+  top: 0;
+  width: 1px;
+}
+
+/* data-d: 0 not started, 1 drawing, 2 done. */
+.grid-line[data-d='0'] {
+  visibility: hidden;
+}
+
+/* While drawing, the accent oozes into the line behind the tip and fades back
+   to the line colour. */
+.grid-line[data-d='1'] {
+  background: linear-gradient(
+    var(--dir),
+    var(--line) calc(var(--p) - var(--trail)),
+    color-mix(in srgb, var(--accent) calc(var(--glow) * 100%), var(--line)) var(--p),
+    transparent var(--p)
+  );
 }
 
 /* The glowing tip that rides the end of a line while it draws. */
@@ -171,48 +497,16 @@ body:has(.grid[data-state='waiting']) .sheen--outline {
   translate: -50% -50%;
 }
 
-/* loading: lines start at random offsets and all finish together. Behind the
-   tip the accent oozes into the line and fades back to the line colour. */
-.grid[data-state='loading'] .grid-line {
-  background: linear-gradient(
-    var(--dir),
-    var(--line) calc(var(--p) - var(--trail)),
-    color-mix(in srgb, var(--accent) calc(var(--glow) * 100%), var(--line)) var(--p),
-    transparent var(--p)
-  );
-  animation:
-    draw-p var(--duration) var(--draw-ease) var(--delay) both,
-    draw-glow var(--duration) linear var(--delay) both;
-}
-
-@keyframes draw-p {
-  from {
-    --p: 0%;
-  }
-}
-@keyframes draw-glow {
-  0% {
-    --glow: 0;
-  }
-  15%,
-  75% {
-    --glow: 1;
-  }
-  100% {
-    --glow: 0;
-  }
-}
-
-/* waiting: fully drawn, content late; one diagonal band of accent sweeps across
-   the whole grid. --shimmer is the band's position on the screen's x + y axis,
-   animated once on .grid; each line shifts it by its own offset so the band
-   lines up across all lines (--span is set from JS). */
-.grid[data-state='waiting'] {
+/* waiting (loading section): fully drawn, content late; one diagonal band of
+   accent sweeps across the whole grid. --shimmer is the band's position on the
+   screen's x + y axis, animated once on .grid; each line shifts it by its own
+   offset so the band lines up across all lines (--span is set from JS). */
+.section[data-state='waiting'] .grid {
   animation: shimmer 3.2s linear infinite;
 }
 
-.grid[data-state='waiting'] .grid-line {
-  --pos: calc(var(--shimmer) - var(--cell) * var(--index));
+.section[data-state='waiting'] .grid-line {
+  --pos: calc(var(--shimmer) - var(--offset));
   background:
     linear-gradient(
       var(--dir),
@@ -236,28 +530,17 @@ body:has(.grid[data-state='waiting']) .sheen--outline {
   }
 }
 
-/* filled: drawn and ready; rests as the backdrop in the plain line colour.
-   Entering it fires the "ready" blast: a ring of accent expands from the centre
-   and lights the grid lines as it passes, with a fading trail behind it.
-   The overlay is masked to the exact line pattern of the grid, so only the
-   lines glow, not the cells. */
-.grid::after {
+/* filled (loading section): the "ready" blast. A ring of accent expands from the
+   centre and lights each line as it passes, with a fading trail behind it. Every
+   line carries its own slice of the ring (--cx / --cy are the centre in the
+   line's own coordinates), so lines and ring always agree on pixels. */
+.grid-line::before {
   content: '';
   position: absolute;
   inset: 0;
   opacity: 0;
-  /* Mask only reads alpha; the colour here is irrelevant to the result. */
-  --mask-line: var(--text);
-  -webkit-mask:
-    repeating-linear-gradient(to right, var(--mask-line) 0 1px, transparent 1px var(--cell)),
-    repeating-linear-gradient(to bottom, var(--mask-line) 0 1px, transparent 1px var(--cell));
-  mask:
-    repeating-linear-gradient(to right, var(--mask-line) 0 1px, transparent 1px var(--cell)),
-    repeating-linear-gradient(to bottom, var(--mask-line) 0 1px, transparent 1px var(--cell));
-  -webkit-mask-composite: source-over;
-  mask-composite: add;
   background: radial-gradient(
-    circle at 50% 50%,
+    circle at var(--cx) var(--cy),
     transparent calc(var(--r) - 360px),
     color-mix(in srgb, var(--accent) 35%, transparent) calc(var(--r) - 90px),
     var(--accent) var(--r),
@@ -265,7 +548,7 @@ body:has(.grid[data-state='waiting']) .sheen--outline {
   );
 }
 
-.grid[data-state='filled']::after {
+.section[data-state='filled'] .grid-line::before {
   animation:
     blast-ring 1.4s cubic-bezier(0.2, 0.7, 0.2, 1) both,
     blast-fade 1.4s linear both;
@@ -296,13 +579,20 @@ body:has(.grid[data-state='waiting']) .sheen--outline {
     animation: none !important;
     display: none;
   }
-  .grid[data-state='waiting'] {
+  .section[data-state='waiting'] .grid {
     animation: none;
   }
-  .grid[data-state='waiting'] .grid-line {
+  .section[data-state='waiting'] .grid-line {
     background: var(--accent-border);
   }
-  .grid[data-state='filled']::after {
+  .section[data-state='filled'] .grid-line::before {
+    animation: none;
+  }
+  .box,
+  .box > * {
+    transition: none;
+  }
+  .box[data-state='filled']::after {
     animation: none;
   }
 }
@@ -311,9 +601,7 @@ body:has(.grid[data-state='waiting']) .sheen--outline {
 
 .grid-debug {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
+  inset: 0;
   z-index: 10;
   pointer-events: none;
   font: 11px/1 ui-monospace, monospace;
@@ -340,4 +628,70 @@ body:has(.grid[data-state='waiting']) .sheen--outline {
   background: var(--surface);
   border: 1px solid var(--border);
   color: var(--text);
+}
+
+.grid-debug-status {
+  left: auto;
+  right: 24px;
+}
+
+/* ---------- Sections ---------- */
+
+.section {
+  position: relative;
+  overflow: hidden;
+  outline: none;
+}
+.section[data-section='loading'] {
+  height: 100svh;
+}
+
+.section-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+/* A box is a size container for its content. It fades in over the grid lines
+   when its edges are drawn, then its content fades in. */
+.box {
+  position: absolute;
+  overflow: hidden;
+  container-type: size;
+  background: var(--surface);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.box[data-state='filled'],
+.box[data-state='ready'] {
+  opacity: 1;
+}
+.box > * {
+  opacity: 0;
+  transition: opacity 0.5s ease 0.2s;
+}
+.box[data-state='ready'] > * {
+  opacity: 1;
+}
+/* Waiting for content: a band of accent sweeps across the box. */
+.box[data-state='filled']::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 30%, var(--accent-bg) 50%, transparent 70%);
+  background-size: 300% 100%;
+  animation: box-shimmer 1.6s linear infinite;
+}
+@keyframes box-shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
+/* Sections marked drawn by a jump appear filled and ready without animation. */
+.box.instant,
+.box.instant > * {
+  transition: none;
 }

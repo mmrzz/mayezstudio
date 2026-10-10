@@ -5,12 +5,21 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>may/ez</title>
+    <script>
+      // Apply the theme picked in the header before the first paint; without one the system's is used.
+      try {
+        const theme = localStorage.getItem('theme')
+        if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme
+      } catch {}
+    </script>
   </head>
   <body>
-    <div class="grid" aria-hidden="true"></div>
-    <main class="stage">
-      <!-- Inline so the logo ships with the first response (no extra request, no JS needed). -->
-      <svg class="logo" style="width: min(86vw, 760px); height: auto" viewBox="-48 -52 660 272" role="img" aria-label="may/ez" xmlns="http://www.w3.org/2000/svg">
+    <div class="chrome">
+      <!-- Inline so the logo ships with the first response (no extra request, no JS needed).
+           Hero width: 760px up to 1900px wide screens, then 40% of the width (at most 85svh)
+           on larger ones; never wider than 86vw or taller than half the screen (121svh). -->
+      <a class="logo-link" href="#" tabindex="-1">
+        <svg class="logo" style="width: min(86vw, 121svh, max(760px, min(40vw, 85svh))); height: auto" viewBox="-48 -52 660 272" role="img" aria-label="may/ez" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <g id="logo-ink">
             <path fill-rule="evenodd" clip-rule="evenodd" d="M46.487 32.4528C46.9928 25.2147 49.7863 22.5816 56.4637 23.0489L146.989 29.3832C153.666 29.8504 159.282 39.8957 158.776 47.1338L153.04 129.224L40.276 121.333L46.487 32.4528ZM59.7078 122.693L62.607 81.2047C64.5584 53.28 69.6565 52.3005 76.4282 52.7743L80.1085 53.0319C86.8802 53.5057 91.7924 55.1857 89.841 83.1104L86.9418 124.599L59.7078 122.693ZM106.374 125.958L109.273 84.4701C111.224 56.5454 116.322 55.5659 123.094 56.0397L126.774 56.2972C133.546 56.7711 138.458 58.451 136.507 86.3758L133.608 127.864L106.374 125.958Z"/>
@@ -47,7 +56,7 @@
           <use href="#logo-ink" />
           <use href="#logo-slash" />
         </g>
-        <g mask="url(#outline-mask)">
+        <g class="outline-wrap" mask="url(#outline-mask)">
           <rect class="sheen sheen--outline" x="0" y="-52" width="320" height="272" fill="url(#sheen-fill)" />
         </g>
 
@@ -58,7 +67,13 @@
           <rect class="sheen sheen--mark" x="0" y="-52" width="320" height="272" fill="url(#sheen-fill)" />
         </g>
       </svg>
+      </a>
+      <nav class="island" aria-label="Sections" inert></nav>
+    </div>
+    <main class="page">
+      <section class="section" data-section="loading" tabindex="-1" aria-label="Loading"></section>
     </main>
+    <div class="scroll-hint" aria-hidden="true"><span>scroll</span><i></i></div>
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>
