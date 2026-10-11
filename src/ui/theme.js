@@ -7,7 +7,7 @@
 // mask that spreads from the toggle (src/ink.js). Without view transitions, or
 // with reduced motion, it switches at once.
 
-import { THEME_INK } from './config.js'
+import { THEME_INK } from '../config.js'
 import { inkMask } from './ink.js'
 
 const KEY = 'theme'

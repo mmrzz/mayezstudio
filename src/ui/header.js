@@ -15,8 +15,8 @@ import {
   ISLAND_ROWS,
   ISLAND_MIN,
   ISLAND_GUTTER,
-} from './config.js'
-import { glowAt } from './grid.js'
+} from '../config.js'
+import { glowAt } from '../core/grid.js'
 import { isDark, toggleTheme, onSystemTheme } from './theme.js'
 
 const clamp01 = (v) => Math.min(1, Math.max(0, v))

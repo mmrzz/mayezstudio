@@ -6,7 +6,7 @@
 //   filled   drawn and ready; the burst plays
 //   rest     the burst is over; a rebuild never replays it
 
-import { LOAD_DRAW_TOTAL, BURST_DURATION } from './config.js'
+import { LOAD_DRAW_TOTAL, BURST_DURATION } from '../config.js'
 
 export default { id: 'loading', title: 'Loading', clock: true, items: [] }
 

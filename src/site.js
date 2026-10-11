@@ -1,12 +1,12 @@
 import './style.css'
-import sections from './sections.js'
-import { createSection } from './section.js'
-import { startLoading } from './loading.js'
-import { startScroll } from './scroll.js'
-import { createHint } from './hint.js'
-import { createHeader } from './header.js'
-import { createUrl } from './url.js'
-import { pickProfile, measureScreen, computeGeometry } from './layout.js'
+import sections from './content/sections.js'
+import { createSection } from './core/section.js'
+import { startLoading } from './ui/loading.js'
+import { startScroll } from './core/scroll.js'
+import { createHint } from './ui/hint.js'
+import { createHeader } from './ui/header.js'
+import { createUrl } from './core/url.js'
+import { pickProfile, measureScreen, computeGeometry } from './core/layout.js'
 import { RESIZE_DEBOUNCE } from './config.js'
 
 const params = new URLSearchParams(location.search)
@@ -48,7 +48,7 @@ addEventListener('resize', () => {
 })
 
 if (import.meta.env.DEV && params.has('grid')) {
-  import('./debug.js').then((m) => m.mountGridOverlay(built))
+  import('./dev/debug.js').then((m) => m.mountGridOverlay(built))
 }
 
 // Content is ready once fonts, the window and the first section's content have

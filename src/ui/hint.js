@@ -3,7 +3,7 @@
 // visitor scrolls, the page also peeks now and then (a small dip and back) to
 // preview the scroll; the first input stops that for good.
 
-import { HINT_FADE, PEEK_FIRST, PEEK_EVERY, PEEK_TIMES } from './config.js'
+import { HINT_FADE, PEEK_FIRST, PEEK_EVERY, PEEK_TIMES } from '../config.js'
 
 export function createHint(scroller) {
   const el = document.querySelector('.scroll-hint')

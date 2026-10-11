@@ -15,7 +15,7 @@ import {
   JUMP_DRAWN_MAX,
   PEEK_DISTANCE,
   PEEK_DURATION,
-} from './config.js'
+} from '../config.js'
 
 const clamp01 = (v) => Math.min(1, Math.max(0, v))
 const easeInOutCubic = (t) => (t < 0.5 ? 4 * t ** 3 : 1 - (-2 * t + 2) ** 3 / 2)

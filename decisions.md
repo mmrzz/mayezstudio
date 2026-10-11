@@ -67,3 +67,15 @@ Decision: A third layout profile, tablet (12×8 design grid), is used for landsc
 Why: On 16×7, 4:3 and 5:4 screens and tablets held sideways got 2–5 empty rows and small cells.
 Rules: Every item needs a tablet layout (or null). Profiles are matched in order in `src/config.js`: portrait, tablet, landscape.
 Supersedes: none (extends D-002's profiles)
+
+## D-009 · Finer design grids · 2026-10-11 · Active
+Decision: Design grids are twice as fine: landscape 32×14, tablet 24×16, portrait 12×18. Cells are about 40 to 60px (limits 24–80px).
+Why: At 16×7 a cell was around 120px, too coarse to place containers accurately.
+Rules: Item positions are in the finer cells. The island stays within the header row (about 44px). The rest of D-002 stands: fixed grid per profile, whole near-square cells, tunables in `src/config.js`.
+Supersedes: none (changes the grid sizes of D-002 and D-008)
+
+## D-010 · One file per container, and a test route · 2026-10-11 · Active
+Decision: Each container is its own file in `src/containers/`, named after its unique id, exporting `{ id, props, load, render }` and optionally a per-profile content swap. Sections only place containers by id, with positions per profile. `/test/<container id>` shows one container full screen, with `?profile=` to force a profile.
+Why: Containers are designed one at a time and need a large, isolated view to judge them accurately.
+Rules: A container's id equals its filename and is unique across the site. Positions stay in sections, never in container files. The test route uses the same props and grid size as the page and shows nothing else.
+Supersedes: none

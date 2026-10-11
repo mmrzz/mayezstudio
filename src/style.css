@@ -695,3 +695,9 @@ body:has([data-section='loading'][data-state='waiting']) .sheen--outline {
 .box.instant > * {
   transition: none;
 }
+
+/* The test route (/test/<container id>): the box fills the screen. */
+.test-box {
+  position: fixed;
+  inset: 0;
+}

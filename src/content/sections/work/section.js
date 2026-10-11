@@ -1,13 +1,11 @@
-const box = () => import('./work/box.js')
-
 export default {
   id: 'work',
   title: 'Work',
   items: [
-    { id: 'a', content: box, props: { tone: 1 }, landscape: { col: 1, row: 1, cols: 4, rows: 3 }, tablet: { col: 1, row: 1, cols: 3, rows: 3 }, portrait: { col: 1, row: 1, cols: 3, rows: 2 } },
-    { id: 'b', content: box, props: { tone: 2 }, landscape: { col: 5, row: 1, cols: 4, rows: 3 }, tablet: { col: 4, row: 1, cols: 3, rows: 3 }, portrait: { col: 4, row: 1, cols: 3, rows: 2 } },
-    { id: 'c', content: box, props: { tone: 3 }, landscape: { col: 9, row: 1, cols: 4, rows: 3 }, tablet: { col: 7, row: 1, cols: 3, rows: 3 }, portrait: { col: 1, row: 3, cols: 3, rows: 2 } },
-    { id: 'd', content: box, props: { tone: 4 }, landscape: { col: 13, row: 1, cols: 4, rows: 3 }, tablet: { col: 10, row: 1, cols: 3, rows: 3 }, portrait: { col: 4, row: 3, cols: 3, rows: 2 } },
-    { id: 'wide', content: box, props: { tone: 5 }, landscape: { col: 1, row: 5, cols: 16, rows: 3 }, tablet: { col: 1, row: 5, cols: 12, rows: 4 }, portrait: { col: 1, row: 6, cols: 6, rows: 4 } },
+    { container: 'work-a', landscape: { col: 1, row: 1, cols: 8, rows: 6 }, tablet: { col: 1, row: 1, cols: 6, rows: 6 }, portrait: { col: 1, row: 1, cols: 6, rows: 4 } },
+    { container: 'work-b', landscape: { col: 9, row: 1, cols: 8, rows: 6 }, tablet: { col: 7, row: 1, cols: 6, rows: 6 }, portrait: { col: 7, row: 1, cols: 6, rows: 4 } },
+    { container: 'work-c', landscape: { col: 17, row: 1, cols: 8, rows: 6 }, tablet: { col: 13, row: 1, cols: 6, rows: 6 }, portrait: { col: 1, row: 5, cols: 6, rows: 4 } },
+    { container: 'work-d', landscape: { col: 25, row: 1, cols: 8, rows: 6 }, tablet: { col: 19, row: 1, cols: 6, rows: 6 }, portrait: { col: 7, row: 5, cols: 6, rows: 4 } },
+    { container: 'work-wide', landscape: { col: 1, row: 9, cols: 32, rows: 6 }, tablet: { col: 1, row: 9, cols: 24, rows: 8 }, portrait: { col: 1, row: 11, cols: 12, rows: 8 } },
   ],
 }

@@ -2,8 +2,8 @@
 // section with column and row numbers, marks the header row and the spare cells,
 // and prints the numbers the layout came up with. Colours come from tokens only.
 
-import { RESIZE_DEBOUNCE } from './config.js'
-import { pickProfile, measureScreen, computeGeometry } from './layout.js'
+import { RESIZE_DEBOUNCE } from '../config.js'
+import { pickProfile, measureScreen, computeGeometry } from '../core/layout.js'
 
 export function mountGridOverlay(sections = []) {
   const info = document.createElement('pre')

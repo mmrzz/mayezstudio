@@ -2,17 +2,18 @@
 
 // Matched in order; the first media query that matches wins.
 // `cols` x `rows` is the design grid, not counting the one reserved header row.
+// Cells are small on purpose (about 40 to 60px) so containers can be placed precisely.
 export const PROFILES = [
-  { name: 'portrait', query: '(orientation: portrait)', cols: 6, rows: 9 },
+  { name: 'portrait', query: '(orientation: portrait)', cols: 12, rows: 18 },
   // Near-square landscape (8:5 or narrower): tablets held sideways, 4:3 and
   // 5:4 screens, narrow windows. On 16 x 7 they would get 2 to 5 empty rows.
-  { name: 'tablet', query: '(orientation: landscape) and (max-aspect-ratio: 8/5)', cols: 12, rows: 8 },
-  { name: 'landscape', query: 'all', cols: 16, rows: 7 },
+  { name: 'tablet', query: '(orientation: landscape) and (max-aspect-ratio: 8/5)', cols: 24, rows: 16 },
+  { name: 'landscape', query: 'all', cols: 32, rows: 14 },
 ]
 
 // Cell size limits in CSS px.
-export const CELL_MIN = 48
-export const CELL_MAX = 160
+export const CELL_MIN = 24
+export const CELL_MAX = 80
 
 // Resize is debounced by this many ms before the layout is recomputed.
 export const RESIZE_DEBOUNCE = 150

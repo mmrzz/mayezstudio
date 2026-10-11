@@ -2,7 +2,7 @@
 // in pixels: items live on the profile's design grid, and this file turns that
 // into whole screen cells and pixel edges for the current screen.
 
-import { PROFILES, CELL_MIN, CELL_MAX } from './config.js'
+import { PROFILES, CELL_MIN, CELL_MAX } from '../config.js'
 
 export function pickProfile(matches = (query) => matchMedia(query).matches) {
   return PROFILES.find((p) => matches(p.query)) ?? PROFILES[PROFILES.length - 1]

@@ -8,7 +8,8 @@
 
 import { itemRect } from './layout.js'
 import { createGrid } from './grid.js'
-import { checkItems, checkOverflow, warn } from './checks.js'
+import { loadContainer, renderFor } from '../content/containers.js'
+import { checkItems, checkOverflow, warn } from '../dev/checks.js'
 
 const EPS = 0.5 // px
 
@@ -39,26 +40,27 @@ export function createSection(def, existing) {
   function load(b) {
     b.loadP ??= (async () => {
       try {
-        const key = `${def.id}/${b.item.id}/${profile.name}`
+        const key = `${b.item.container}/${profile.name}`
         if (!loads.has(key)) {
           loads.set(
             key,
             (async () => {
-              const mod = await (b.place.content ?? b.item.content)()
-              await mod.load?.(b.ctx)
-              return mod
+              const container = await loadContainer(b.item.container)
+              await container.load?.(b.ctx)
+              return container
             })(),
           )
         }
-        const mod = await loads.get(key)
+        const container = await loads.get(key)
         if (b.dead) return
-        const cleanup = mod.default(b.el, b.ctx)
+        b.ctx.props = { ...container.props, ...b.ctx.props } // the placement overrides the container's
+        const cleanup = renderFor(container, profile.name)(b.el, b.ctx)
         if (typeof cleanup === 'function') b.cleanup = cleanup
         b.loaded = true
         refresh(b)
-        if (import.meta.env.DEV) checkOverflow(`${def.id}/${b.item.id}`, b.el)
+        if (import.meta.env.DEV) checkOverflow(`${def.id}/${b.item.container}`, b.el)
       } catch (err) {
-        console.error(`[content] ${def.id}/${b.item.id}`, err)
+        console.error(`[container] ${def.id}/${b.item.container}`, err)
       }
     })()
     return b.loadP
@@ -117,7 +119,7 @@ export function createSection(def, existing) {
       const r0 = geo.rowStart + place.row - 1
       const box = document.createElement('div')
       box.className = 'box'
-      box.dataset.item = item.id
+      box.dataset.item = item.container
       box.dataset.state = 'empty'
       box.inert = true
       // Edge to edge between its four outline lines, which stay visible.

@@ -1,4 +1,4 @@
-// Temporary mock content shared by every mock box. Removed with the --mock-N
+// Temporary mock content shared by every mock container. Removed with the --mock-N
 // tokens when real content arrives.
 
 // In dev, content arrives late so the waiting shimmer can be seen.
@@ -6,7 +6,7 @@ export async function load() {
   if (import.meta.env.DEV) await new Promise((r) => setTimeout(r, Math.random() * 1500))
 }
 
-export default function render(box, { props }) {
+export function render(box, { props }) {
   const fill = document.createElement('div')
   fill.style.cssText = `width:100%;height:100%;background:var(--mock-${props.tone})`
   box.append(fill)
@@ -19,3 +19,4 @@ export function renderSmall(box, { props }) {
   fill.style.cssText = `width:100%;height:100%;background:repeating-linear-gradient(45deg,${tone} 0 8px,color-mix(in srgb,${tone} 70%,var(--bg)) 8px 16px)`
   box.append(fill)
 }
+export default render

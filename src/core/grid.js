@@ -6,7 +6,7 @@
 // A line has a drawn fraction (0..1) and a glow (the tip). Both go to CSS as
 // --p and --glow; data-d is 0 (not started), 1 (drawing) or 2 (done).
 
-import { LOAD_DRAW_TOTAL, LOAD_SPREAD, H_WINDOW, V_START, V_EASE } from './config.js'
+import { LOAD_DRAW_TOTAL, LOAD_SPREAD, H_WINDOW, V_START, V_EASE } from '../config.js'
 
 const clamp01 = (v) => Math.min(1, Math.max(0, v))
 const easeInOutCubic = (t) => (t < 0.5 ? 4 * t ** 3 : 1 - (-2 * t + 2) ** 3 / 2)

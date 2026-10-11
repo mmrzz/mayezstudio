@@ -9,7 +9,7 @@ export function checkItems(def, profile) {
   const placed = []
   for (const item of def.items) {
     const place = item[profile.name]
-    const name = `${def.id}/${item.id}`
+    const name = `${def.id}/${item.container}`
     if (place === undefined) {
       out.push(`${name}: no ${profile.name} layout (use null to hide on purpose)`)
       continue
@@ -22,7 +22,7 @@ export function checkItems(def, profile) {
     for (const other of placed) {
       if (overlaps(place, other.place)) out.push(`${name} overlaps ${def.id}/${other.id}`)
     }
-    placed.push({ id: item.id, place })
+    placed.push({ id: item.container, place })
   }
   return out
 }
