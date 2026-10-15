@@ -15,18 +15,120 @@
   --accent-border: light-dark(rgba(122, 53, 214, 0.45), rgba(188, 123, 249, 0.45));
   --shadow: light-dark(rgba(48, 43, 43, 0.15), rgba(0, 0, 0, 0.5));
 
-  /* Temporary mock-content tones; removed when real content arrives. */
-  --mock-1: light-dark(#c9b6ee, #5a4580);
-  --mock-2: light-dark(#e9b99a, #7a5238);
-  --mock-3: light-dark(#a9cfae, #3f6445);
-  --mock-4: light-dark(#9fc3df, #3a5c78);
-  --mock-5: light-dark(#e6cf8f, #7a6a30);
+  /* Container tones: a fill and an edge per hue. The grid is calm and ordered; these
+     are the playful part. A container picks its pair in its own file (`look`). Ink
+     text passes on every fill (dark text on the light fills, light text on the dark). */
+  --tone-sun: light-dark(#f7dc7a, #6b5a1a);
+  --tone-sun-edge: light-dark(#d9ae1f, #b8962c);
+  --tone-coral: light-dark(#f6b59b, #7a3f2a);
+  --tone-coral-edge: light-dark(#e0764a, #d0704a);
+  --tone-mint: light-dark(#b4e0b9, #2f5a3a);
+  --tone-mint-edge: light-dark(#5fae6b, #5fae6b);
+  --tone-sky: light-dark(#a9d4f2, #2b4e6b);
+  --tone-sky-edge: light-dark(#4a9bd6, #4a9bd6);
+  --tone-lilac: light-dark(#d3bdf5, #4d3a75);
+  --tone-lilac-edge: light-dark(#9a64e0, #8f63d8);
+
+  /* The pixel game's own palette (receipt 1, containers/intro-systems/systems-art.js): a
+     sunset in the light theme, dusk in the dark one, with a game's colours for everything in
+     it. Only that scene uses them. */
+  --px-outline: light-dark(#2e2226, #120d10);
+  --px-skin: light-dark(#f6cfa8, #e6b58a);
+  --px-skin-shade: light-dark(#dba67e, #c48e68);
+  --px-hair: light-dark(#6b3f26, #4a2b1b);
+  --px-hat: light-dark(#ffc93c, #f0b429);
+  --px-hat-hi: light-dark(#ffe27a, #ffd25c);
+  --px-hat-shade: light-dark(#d9a11e, #b9821a);
+  --px-shirt: light-dark(#4a9bd6, #3b82c0);
+  --px-shirt-shade: light-dark(#2f75ad, #2a64a0);
+  --px-shirt-hi: light-dark(#8cc6ec, #6aa7d8);
+  --px-pants: light-dark(#4a5a9c, #384783);
+  --px-pants-shade: light-dark(#343f78, #28325f);
+  --px-boots: light-dark(#6a4129, #4a2e1d);
+  --px-wood-hi: light-dark(#e2ac6e, #c2874e);
+  --px-wood: light-dark(#c07a3c, #9d6232);
+  --px-wood-dark: light-dark(#85501f, #62401c);
+  --px-nail: light-dark(#fff0c8, #e8d29a);
+  --px-label: light-dark(#fff6e4, #f1e2c8);
+  --px-trunk: light-dark(#8a5a30, #6a4426);
+  --px-trunk-hi: light-dark(#a8733f, #84552f);
+  --px-trunk-shade: light-dark(#5e3a1c, #46291a);
+  --px-leaf-hi: light-dark(#94dc7e, #6dbb64);
+  --px-leaf: light-dark(#55ad54, #429348);
+  --px-leaf-shade: light-dark(#2f7343, #2b5f3a);
+  --px-fruit: light-dark(#e8483f, #d4443d);
+  --px-grass-hi: light-dark(#8be06f, #62b65a);
+  --px-grass: light-dark(#5fbe53, #489a47);
+  --px-grass-shade: light-dark(#3b8f46, #347b3d);
+  --px-dirt: light-dark(#b0713f, #84552f);
+  --px-dirt-shade: light-dark(#84502a, #62401f);
+  --px-pebble: light-dark(#d9c2a0, #a68f74);
+  --px-cloud: light-dark(#fff6e4, #e9cdc4);
+  --px-cloud-shade: light-dark(#f2d3c4, #c29aa0);
+  --px-sun: light-dark(#ffd45a, #fff0c0);
+  --px-sun-glow: light-dark(#ffe699, #b9b0d8);
+  --px-hill-far: light-dark(#8fbfb0, #34406a);
+  --px-hill-near: light-dark(#6fb06a, #2e5a4a);
+  --px-sky-0: light-dark(#86c2ee, #1c1838);
+  --px-sky-1: light-dark(#aad6f4, #2a2250);
+  --px-sky-2: light-dark(#f7dbc8, #43295c);
+  --px-sky-3: light-dark(#f9c9a6, #6a3563);
+  --px-sky-4: light-dark(#fbb98a, #964457);
+  --px-star: light-dark(transparent, #fff3c4);
+
+  /* The orrery's palette (receipt 2, containers/intro-year/year-art.js): space, the Sun, the
+     Earth's biomes and the Moon. Space looks the same in both themes, so each pair is alike. */
+  --sp-void: light-dark(#04060c, #020309);
+  --sp-text: light-dark(#f3eee2, #ece6d6);
+  --sp-ocean-deep: light-dark(#0a2a55, #092550);
+  --sp-ocean: light-dark(#1b5a9b, #184f8a);
+  --sp-shelf: light-dark(#3f93bd, #3784ab);
+  --sp-tropic: light-dark(#1e5a2d, #1b4d28);
+  --sp-lush: light-dark(#4f9040, #447d36);
+  --sp-forest: light-dark(#2f6a3b, #285d33);
+  --sp-dry: light-dark(#a89150, #94803f);
+  --sp-desert: light-dark(#d0ad6c, #b99a5c);
+  --sp-rock: light-dark(#7c6b5a, #6b5b4d);
+  --sp-tundra: light-dark(#8a8c78, #77796a);
+  --sp-snow: light-dark(#f4f7fb, #e6ecf4);
+  --sp-cloud: light-dark(#ffffff, #f1f4fa);
+  --sp-lights: light-dark(#ffc86a, #ffc86a);
+  --sp-air: light-dark(#6fb4ff, #5fa6f5);
+  --sp-dusk: light-dark(#ff8a4c, #ff7f40);
+  --sp-sun-core: light-dark(#fff4c4, #fff0b8);
+  --sp-sun-mid: light-dark(#ffc247, #ffb73b);
+  --sp-sun-rim: light-dark(#e8590c, #d94f08);
+  --sp-corona: light-dark(#ffb25a, #ffa64a);
+  --sp-moon-light: light-dark(#bdb9ae, #aeaa9f);
+  --sp-moon-dark: light-dark(#5a5856, #4e4c4a);
+  --sp-star-cool: light-dark(#b9d0ff, #a9c4ff);
+  --sp-star-warm: light-dark(#ffe2b8, #ffd9a8);
+
+  /* The ritual's ink (receipt 3, containers/intro-team/team-art.js): black line on white in
+     both themes, like an ink drawing. The only colours are the evil one's eyes and the angel's
+     halo; `--rit-dark` is the room while the spell is cast. */
+  --rit-line: light-dark(#1c1716, #120e0d);
+  --rit-paper: light-dark(#fffdf8, #ece6d8);
+  --rit-dark: light-dark(#140a1c, #07030b);
+  --rit-eye: light-dark(#ff2414, #ff2d1a);
+  --rit-eye-core: light-dark(#ffd7c2, #ffd2b8);
+  --rit-gold: light-dark(#e2a91a, #f2c23a);
+  --rit-gold-hi: light-dark(#fff1b0, #fff0a6);
 }
 :root[data-theme='light'] {
   color-scheme: light;
 }
 :root[data-theme='dark'] {
   color-scheme: dark;
+}
+
+/* Vazirmatn (OFL), variable: every weight from one file, Persian and Latin. */
+@font-face {
+  font-family: 'Vazirmatn';
+  src: url('/fonts/vazirmatn-wght.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
 }
 
 /* Theme change (src/theme.js): no cross-fade; the new theme is revealed through
@@ -50,6 +152,7 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
+  font-family: Vazirmatn, system-ui, sans-serif;
 }
 
 /* ---------- Chrome: the fixed layer holding the logo and the header island ---------- */
@@ -157,7 +260,7 @@ body {
   position: relative;
   width: calc(var(--island-h) * 0.6 * 660 / 272);
   height: calc(var(--island-h) * 0.6);
-  margin-right: calc(var(--island-h) * 0.15);
+  margin-inline-end: calc(var(--island-h) * 0.15);
 }
 /* Wide screens: the links are plain flex items of the island. */
 .island-links {
@@ -179,7 +282,10 @@ body {
   border: 0;
   background: none;
   color: var(--text);
-  font: 500 var(--island-font) / 1 system-ui, sans-serif;
+  font-family: inherit;
+  font-size: var(--island-font);
+  font-weight: 500;
+  line-height: 1.3;
   cursor: pointer;
   opacity: var(--o);
 }
@@ -229,7 +335,10 @@ body {
   height: 100%;
   padding-inline: calc(var(--island-h) * 0.3);
   color: var(--text);
-  font: 500 var(--island-font) / 1 system-ui, sans-serif;
+  font-family: inherit;
+  font-size: var(--island-font);
+  font-weight: 500;
+  line-height: 1.3;
   text-decoration: none;
   opacity: var(--o);
   translate: 0 calc((1 - var(--o)) * 6px);
@@ -255,7 +364,7 @@ body {
   place-items: center;
   width: calc(var(--island-h) * 0.8);
   height: 100%;
-  margin-left: calc(var(--island-h) * 0.1);
+  margin-inline-start: calc(var(--island-h) * 0.1);
   padding: 0;
   border: 0;
   background: none;
@@ -267,7 +376,7 @@ body {
 .island-theme::before {
   content: '';
   position: absolute;
-  left: 0;
+  inset-inline-start: 0;
   top: 30%;
   bottom: 30%;
   border-left: 1px solid var(--border);
@@ -358,9 +467,8 @@ body:has([data-section='loading'][data-state='waiting']) .sheen--outline {
   gap: 8px;
   pointer-events: none;
   color: var(--text-muted);
-  font: 12px/1 ui-monospace, monospace;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  font-size: 12px;
+  line-height: 1.5;
   opacity: calc(var(--show) * var(--fade));
   transition: --show 0.6s ease;
 }
@@ -453,6 +561,10 @@ body:has([data-section='loading'][data-state='waiting']) .sheen--outline {
   left: 0;
   height: 1px;
 }
+/* Horizontal lines run from the inline-start edge: the right in RTL. */
+.grid[data-dir='rtl'] .grid-line--h {
+  --dir: to left;
+}
 .grid-line--v {
   --dir: to bottom;
   top: 0;
@@ -490,6 +602,9 @@ body:has([data-section='loading'][data-state='waiting']) .sheen--outline {
   top: 50%;
   left: var(--p);
   translate: -50% -50%;
+}
+.grid[data-dir='rtl'] .grid-line--h::after {
+  left: calc(100% - var(--p));
 }
 .grid-line--v::after {
   left: 50%;
@@ -652,15 +767,18 @@ body:has([data-section='loading'][data-state='waiting']) .sheen--outline {
   z-index: 0;
 }
 
-/* A box is a size container for its content. It fades in over the grid lines
-   when its edges are drawn, then its content fades in. */
+/* A box is a size container for its content. When its edges are drawn, a frame with its
+   look is dragged out over the grid lines (section.js); the box then takes the frame's place
+   at once, and its content fades in. */
 .box {
   position: absolute;
   overflow: hidden;
+  box-sizing: border-box;
   container-type: size;
-  background: var(--surface);
+  background: var(--box-fill, var(--surface));
+  border: var(--box-border, 0) solid var(--box-edge, transparent);
+  border-radius: var(--box-radius, 0);
   opacity: 0;
-  transition: opacity 0.3s ease;
 }
 .box[data-state='filled'],
 .box[data-state='ready'] {
@@ -672,6 +790,11 @@ body:has([data-section='loading'][data-state='waiting']) .sheen--outline {
 }
 .box[data-state='ready'] > * {
   opacity: 1;
+}
+/* An animated container controls its own appearance: no content fade from the box. */
+.box > [data-motion] {
+  opacity: 1;
+  transition: none;
 }
 /* Waiting for content: a band of accent sweeps across the box. */
 .box[data-state='filled']::after {
@@ -690,6 +813,32 @@ body:has([data-section='loading'][data-state='waiting']) .sheen--outline {
     background-position: -100% 0;
   }
 }
+/* The frame being dragged out: the box's look, and a handle on the moving corner. */
+.box-frame {
+  position: absolute;
+  box-sizing: border-box;
+  background: var(--box-fill, var(--surface));
+  border: var(--box-border, 0) solid var(--box-edge, var(--border));
+  border-radius: var(--box-radius, 0);
+  pointer-events: none;
+}
+.box-frame::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  width: 8px;
+  height: 8px;
+  box-sizing: border-box;
+  border: 1.5px solid var(--accent);
+  background: var(--bg);
+}
+.box-frame[data-dir='rtl']::after {
+  left: -5px;
+}
+.box-frame[data-dir='ltr']::after {
+  right: -5px;
+}
+
 /* Sections marked drawn by a jump appear filled and ready without animation. */
 .box.instant,
 .box.instant > * {

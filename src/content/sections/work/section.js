@@ -1,6 +1,6 @@
 export default {
   id: 'work',
-  title: 'Work',
+  title: 'کارها',
   items: [
     { container: 'work-a', landscape: { col: 1, row: 1, cols: 8, rows: 6 }, tablet: { col: 1, row: 1, cols: 6, rows: 6 }, portrait: { col: 1, row: 1, cols: 6, rows: 4 } },
     { container: 'work-b', landscape: { col: 9, row: 1, cols: 8, rows: 6 }, tablet: { col: 7, row: 1, cols: 6, rows: 6 }, portrait: { col: 7, row: 1, cols: 6, rows: 4 } },

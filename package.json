@@ -9,6 +9,12 @@
     "preview": "vite preview"
   },
   "devDependencies": {
+    "@theatre/studio": "^0.7.2",
     "vite": "^8.3.0"
+  },
+  "dependencies": {
+    "@theatre/core": "^0.7.2",
+    "gsap": "3.15.0",
+    "three": "^0.186.1"
   }
 }

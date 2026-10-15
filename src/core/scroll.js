@@ -122,7 +122,7 @@ export function startScroll(sections) {
     const dir = Math.sign(y - restY)
     restY = y
     // Off during loading and jumps, and inside a section taller than the screen.
-    if (!dir || locked() || gliding || sections[0].el.offsetHeight > innerHeight + 1) return
+    if (!dir || locked() || gliding || sections[1].el.offsetHeight > innerHeight + 1) return
     const tops = sections.map((s) => s.el.offsetTop)
     if (tops.some((t) => Math.abs(t - y) < 1)) return // exactly on a section
     // The section boundary behind you and the one ahead, in the scroll direction.
@@ -170,9 +170,10 @@ export function startScroll(sections) {
     return clamp01((innerHeight - s.el.getBoundingClientRect().top) / s.el.offsetHeight)
   }
 
+  // Sections are not all one height (the loading screen shrinks), so find the one at mid-screen.
   function preloadAhead() {
-    const height = sections[0].el.offsetHeight
-    const current = Math.min(sections.length - 1, Math.max(0, Math.floor((scrollY + innerHeight / 2) / height)))
+    const mid = scrollY + innerHeight / 2
+    const current = Math.max(0, sections.findLastIndex((s) => s.el.offsetTop <= mid))
     sections[current + 1]?.preload()
   }
 
@@ -320,5 +321,5 @@ export function startScroll(sections) {
     }
   }
 
-  return { lock, jump, anchor, peek, current: currentIndex }
+  return { lock, locked, jump, anchor, peek, current: currentIndex }
 }

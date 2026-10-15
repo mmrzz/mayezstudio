@@ -1,0 +1,10 @@
+  // Receipt 1 (systems-timeline.js): a man pushes a box in, then three more drop from above.
+  systems: {
+    shove: 420, brace: 260, shoves: [0.36, 0.7, 1], // each shove moves the box to this share of the way; he strains between them
+    lurch: 400, // the box stops and he nearly tips over
+    pause: 300, // a beat of stillness
+    fall: 320, drops: [0, 280, 440], // the three boxes, from the first one's start; the second lands where he stood
+    jump: 300, // he jumps back as the first lands
+    proud: 750, proudFor: 350, // after the first lands: he stands proud
+    paste: 1000, caption: 150, // «۴» after the first lands; the caption after the paste
+    stroke: 2.2, // design units (scales with the drawing)

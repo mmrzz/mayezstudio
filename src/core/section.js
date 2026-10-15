@@ -2,13 +2,20 @@
 // `progress` and `drawn` state, so a rebuild (resize) can restore what was drawn.
 //
 // Box states: empty -> filled -> ready
-//   empty   hidden
-//   filled  all four edges are drawn; the box covers the lines inside it (shimmers while its content loads)
+//   empty   hidden; once all four edges are drawn and the container's look is applied, a frame
+//           with the box's look is dragged out from its inline-start top corner (BOX_DRAW)
+//   filled  the frame is done and the box takes its place; the box covers the lines inside it
+//           and floats BOX.gap inside the outer ones (shimmers while its content loads)
 //   ready   content is loaded and fades in
+//
+// The first time a box becomes ready in a mount it dispatches `reveal` (D-014);
+// detail.instant is true when it was shown without animation (a jump, a drawn
+// section, a rebuild). Animated containers listen for it.
 
-import { itemRect } from './layout.js'
+import { itemRect, physCol, returnHeight } from './layout.js'
 import { createGrid } from './grid.js'
-import { loadContainer, renderFor } from '../content/containers.js'
+import { loadContainer, renderFor, applyLook } from '../content/containers.js'
+import { BOX, BOX_DRAW, BOX_DRAW_EASE } from '../config.js'
 import { checkItems, checkOverflow, warn } from '../dev/checks.js'
 
 const EPS = 0.5 // px
@@ -29,12 +36,56 @@ export function createSection(def, existing) {
   let geo = null
   let profile = null
 
-  const section = { el, def, progress: 0, drawn: false, clock: null }
+  // short: the loading section, shrunk once the visitor has been past it (shrinkLoading).
+  const section = { el, def, progress: 0, drawn: false, clock: null, short: false, geo: null }
+
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)')
+
+  // Drags out a frame with the box's look, like a rectangle drawn in a design tool: from the
+  // inline-start top corner to full size, with a handle on the corner being dragged. Then the
+  // box takes its place.
+  function drawFrame(b) {
+    b.drawing = true
+    const { left, top, width, height } = b.el.style
+    const frame = document.createElement('div')
+    frame.className = 'box-frame'
+    frame.dataset.dir = geo.rtl ? 'rtl' : 'ltr'
+    for (const name of ['--box-fill', '--box-edge', '--box-radius', '--box-border'])
+      frame.style.setProperty(name, b.el.style.getPropertyValue(name))
+    Object.assign(frame.style, { left, top, width, height })
+    b.el.before(frame)
+    const corner = geo.rtl ? { left: `calc(${left} + ${width})` } : { left }
+    const anim = frame.animate(
+      [
+        { ...corner, width: '0px', height: '0px' },
+        { left, width, height },
+      ],
+      { duration: BOX_DRAW, easing: `cubic-bezier(${BOX_DRAW_EASE})` },
+    )
+    anim.finished.then(
+      () => {
+        if (b.dead) return
+        b.shown = true
+        refresh(b)
+        frame.remove() // the box, identical, is in place now
+      },
+      () => {},
+    )
+  }
 
   function refresh(b) {
-    if (!b.filled) return
+    if (!b.filled || !b.looked) return
+    if (!b.shown) {
+      if (b.el.classList.contains('instant') || reduceMotion.matches) b.shown = true
+      else return b.drawing || drawFrame(b)
+    }
     b.el.dataset.state = b.loaded ? 'ready' : 'filled'
-    if (b.loaded) b.el.inert = false
+    if (!b.loaded) return
+    b.el.inert = false
+    if (b.revealed) return
+    b.revealed = true
+    // Synchronous, so a listener can set its starting state before the next paint.
+    b.el.dispatchEvent(new CustomEvent('reveal', { detail: { instant: b.el.classList.contains('instant') } }))
   }
 
   function load(b) {
@@ -45,7 +96,7 @@ export function createSection(def, existing) {
           loads.set(
             key,
             (async () => {
-              const container = await loadContainer(b.item.container)
+              const container = await b.defP
               await container.load?.(b.ctx)
               return container
             })(),
@@ -68,12 +119,14 @@ export function createSection(def, existing) {
 
   // An item is complete when its four edges are drawn along their full length.
   // A missing line is a screen edge or the section's bottom edge: counted as drawn.
+  // Horizontal lines draw from the inline-start edge, so the far edge of a box
+  // is reached at x1 in LTR and at width - x0 in RTL.
   function complete(b) {
-    const x1 = geo.x[b.c1]
+    const reach = geo.rtl ? geo.width - geo.x[b.c0] : geo.x[b.c1]
     const y1 = geo.y[b.r1]
     return (
-      !(grid.h.get(b.r0)?.len < x1 - EPS) &&
-      !(grid.h.get(b.r1)?.len < x1 - EPS) &&
+      !(grid.h.get(b.r0)?.len < reach - EPS) &&
+      !(grid.h.get(b.r1)?.len < reach - EPS) &&
       !(grid.v.get(b.c0)?.len < y1 - EPS) &&
       !(grid.v.get(b.c1)?.len < y1 - EPS)
     )
@@ -102,7 +155,8 @@ export function createSection(def, existing) {
     unmount()
     geo = newGeo
     profile = newProfile
-    el.style.height = `${geo.sectionHeight}px`
+    section.geo = geo
+    el.style.height = `${section.short ? returnHeight(geo) : geo.sectionHeight}px`
 
     grid = createGrid(geo, { id: def.id, mode: def.clock ? 'clock' : 'scroll', top: !def.clock })
     layer = document.createElement('div')
@@ -115,22 +169,22 @@ export function createSection(def, existing) {
       const place = item[profile.name]
       if (!place) continue
       const rect = itemRect(geo, place)
-      const c0 = geo.colStart + place.col - 1
+      const c0 = physCol(geo, place.col, place.cols)
       const r0 = geo.rowStart + place.row - 1
       const box = document.createElement('div')
       box.className = 'box'
       box.dataset.item = item.container
       box.dataset.state = 'empty'
       box.inert = true
-      // Edge to edge between its four outline lines, which stay visible.
+      // Inside its four outline lines, which stay visible, BOX.gap away from them.
       Object.assign(box.style, {
-        left: `${rect.x + 1}px`,
-        top: `${rect.y + 1}px`,
-        width: `${rect.width - 1}px`,
-        height: `${rect.height - 1}px`,
+        left: `${rect.x + 1 + BOX.gap}px`,
+        top: `${rect.y + 1 + BOX.gap}px`,
+        width: `${rect.width - 1 - 2 * BOX.gap}px`,
+        height: `${rect.height - 1 - 2 * BOX.gap}px`,
       })
       layer.append(box)
-      boxes.push({
+      const b = {
         item,
         place,
         el: box,
@@ -140,8 +194,22 @@ export function createSection(def, existing) {
         r1: r0 + place.rows,
         ctx: { profile: profile.name, cols: place.cols, rows: place.rows, props: { ...item.props, ...place.props } },
         filled: false,
+        looked: false, // the container's look is on the box; until then it stays hidden
+        shown: false, // its frame has been drawn (or skipped); the box itself is visible
         loaded: false,
-      })
+      }
+      boxes.push(b)
+      // The look is the container's own, so it comes with its module (not with load()).
+      b.defP = loadContainer(item.container)
+      b.defP.then(
+        (def) => {
+          if (b.dead) return
+          applyLook(box, def)
+          b.looked = true
+          refresh(b)
+        },
+        () => {}, // load() reports it
+      )
     }
     el.append(layer)
 

@@ -1,0 +1,27 @@
+  // The claim (claim-timeline.js, D-016): ms from the start of its timeline. The text sets the
+  // claim in two beats; the drawing tells the same story, from idea to delivery.
+  claim: {
+    blinkOn: 180, blink: 330, // the caret appears and blinks once
+    word: 500, wordStagger: 60, // beat 1: «ایده از شما،»
+    beat2: 1250, beat2Stagger: 120, // beat 2: «طراحی و ساخت از ما.», a word per ray
+    caretOff: 2350, caretFade: 150,
+    line: 3950, lineWord: 450, lineStagger: 100, lineRise: 0.3, // the supporting line, word by word; «تحویل» lands as the stages peek out. lineRise in em
+    bulb: 0, // the bulb is traced (ایده)
+    light: 950, // it lights: the filament turns violet, ticks burst out
+    rays: 1300, rayStagger: 140, // four rays reach out, each draws a stage card
+    box: 2150, // the open box is drawn, then filled
+    turn: 2250, turnFor: 1300, // the camera turns from almost front-on to its resting angle
+    absorb: 2850, // each ray is absorbed by its card...
+    fly: 3200, flyStagger: 120, flyFor: 620, // ...which then flies into the box
+    erase: 3650, // the light has gone into the work: the bulb is taken back off the paper
+    focus: 3900, focusFor: 1000, // the camera moves in on the box
+    spread: 4200, // its flaps flop open
+    peek: 4450, peekStagger: 110, // and the stages peek out, one by one
+    // Behind the text (small screens): the drawing plays alone, fades back, then the text is
+    // written over it, its beats one after another.
+    behind: { dim: 5400, dimFor: 500, text: 5700, beatGap: 150, lineGap: 150 },
+    label: 4950, // the slash is drawn on the front
+    view: { from: [10, 6], to: [34, 22] }, // camera azimuth and elevation, degrees
+    at: { from: [-106, -54, 1], to: [0, -30, 1.3] }, // where the box's foot sits on the paper (x, y, design units) and the zoom
+    stroke: 2.4, // stroke width, design units (scales with the drawing)
+  },

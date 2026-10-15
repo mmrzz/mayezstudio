@@ -2,7 +2,7 @@
 // in pixels: items live on the profile's design grid, and this file turns that
 // into whole screen cells and pixel edges for the current screen.
 
-import { PROFILES, CELL_MIN, CELL_MAX } from '../config.js'
+import { PROFILES, CELL_MIN, CELL_MAX, LOAD_RETURN_ROWS } from '../config.js'
 
 export function pickProfile(matches = (query) => matchMedia(query).matches) {
   return PROFILES.find((p) => matches(p.query)) ?? PROFILES[PROFILES.length - 1]
@@ -20,7 +20,8 @@ function measureSvh() {
 
 // clientWidth excludes the scrollbar, so no column ever sits under it.
 export function measureScreen() {
-  return { width: document.documentElement.clientWidth, height: measureSvh(), dpr: devicePixelRatio || 1 }
+  const root = document.documentElement
+  return { width: root.clientWidth, height: measureSvh(), dpr: devicePixelRatio || 1, dir: root.dir }
 }
 
 // Pixel edges shared by lines and boxes, so they always line up.
@@ -29,7 +30,7 @@ function edges(count, size, dpr) {
 }
 
 // Pure: no DOM access, so it can be checked from anywhere.
-export function computeGeometry(profile, { width, height, dpr = 1 }) {
+export function computeGeometry(profile, { width, height, dpr = 1, dir = 'ltr' }) {
   const { cols: C, rows: R } = profile
   const t = Math.min(Math.max(Math.min(width / C, height / (R + 1)), CELL_MIN), CELL_MAX)
   const cols = Math.max(C, Math.round(width / t))
@@ -38,11 +39,15 @@ export function computeGeometry(profile, { width, height, dpr = 1 }) {
   const cellH = Math.max(height / rows, CELL_MIN)
 
   // The design grid is centred below the header row; the rest is spare cells.
-  const colStart = Math.floor((cols - C) / 2)
+  // The inline-start side gets floor(spare / 2), so in RTL the left side gets the rest.
+  // colStart is the physical (left to right) index of the design grid's left column.
+  const rtl = dir === 'rtl'
+  const colStart = rtl ? cols - C - Math.floor((cols - C) / 2) : Math.floor((cols - C) / 2)
   const rowStart = 1 + Math.floor((rows - 1 - R) / 2)
 
   return {
     profile: profile.name,
+    rtl,
     design: { cols: C, rows: R },
     width,
     height,
@@ -58,9 +63,21 @@ export function computeGeometry(profile, { width, height, dpr = 1 }) {
   }
 }
 
+// The loading screen's height once the visitor has been past it: whole rows, so its grid
+// still ends on a line.
+export function returnHeight(geo) {
+  return geo.y[Math.max(1, Math.round(geo.rows * LOAD_RETURN_ROWS))]
+}
+
+// Physical (left to right, 0-based) index of the column where a design item starts.
+// Design column 1 is the inline-start edge: the right edge in RTL.
+export function physCol(geo, col, cols) {
+  return geo.rtl ? geo.colStart + geo.design.cols - col - cols + 1 : geo.colStart + col - 1
+}
+
 // Rectangle of a 1-based design-grid item, in section pixels.
 export function itemRect(geo, { col, row, cols, rows }) {
-  const c0 = geo.colStart + col - 1
+  const c0 = physCol(geo, col, cols)
   const r0 = geo.rowStart + row - 1
   const x = geo.x[c0]
   const y = geo.y[r0]

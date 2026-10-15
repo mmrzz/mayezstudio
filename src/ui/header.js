@@ -30,7 +30,7 @@ export function createHeader(sections) {
   const logoLink = chrome.querySelector('.logo-link')
 
   // ---- Build the island: outline, logo slot, one real link per section, theme toggle.
-  island.innerHTML = `<svg class="island-outline" aria-hidden="true"><path class="island-line" pathLength="1"/><circle class="island-tip" r="2.5"/></svg><span class="island-slot"></span><button class="island-toggle" type="button" aria-expanded="false" aria-controls="island-links">Menu</button><div class="island-links" id="island-links"></div><button class="island-theme" type="button" aria-label="Dark mode"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="theme-moon" d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/><g class="theme-sun"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></g></svg></button>`
+  island.innerHTML = `<svg class="island-outline" aria-hidden="true"><path class="island-line" pathLength="1"/><circle class="island-tip" r="2.5"/></svg><span class="island-slot"></span><button class="island-toggle" type="button" aria-expanded="false" aria-controls="island-links">منو</button><div class="island-links" id="island-links"></div><button class="island-theme" type="button" aria-label="حالت تاریک"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="theme-moon" d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/><g class="theme-sun"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></g></svg></button>`
   const outline = island.querySelector('.island-outline')
   const line = island.querySelector('.island-line')
   const tip = island.querySelector('.island-tip')
@@ -60,17 +60,21 @@ export function createHeader(sections) {
   onSystemTheme(syncTheme)
   syncTheme()
 
+  const loading = sections[0].el
   let cellH = 0
-  let firstH = 1
+  let firstH = 1 // the loading screen's height: the formation runs over it
+  let start = { x: 0, y: 0, scale: 1 } // the logo at the top: the screen's centre, or the short loading screen's
   let hero = { x: 0, y: 0, scale: 1 } // offset and scale from the hero spot to the island's logo slot
   let pathLength = 1
+  let lastGeo = null
 
   // ---- Geometry
-  function layout(geo) {
+  function layout(geo = lastGeo) {
+    lastGeo = geo
     cellH = geo.cellH
-    firstH = geo.sectionHeight
+    firstH = loading.offsetHeight || geo.sectionHeight
     const h = Math.max(ISLAND_MIN, ISLAND_ROWS * cellH)
-    const top = (cellH - h) / 2
+    const top = Math.max(0, (Math.max(1, Math.ceil(ISLAND_ROWS)) * cellH - h) / 2) // centred on the rows it covers
     chrome.style.setProperty('--island-h', `${h}px`)
     chrome.style.setProperty('--island-top', `${top}px`)
     chrome.style.setProperty('--hide-dist', `${-(top + h + 12)}px`)
@@ -88,6 +92,13 @@ export function createHeader(sections) {
       x: slotCX - chrome.clientWidth / 2,
       y: slotCY - chrome.clientHeight / 2,
       scale: slot.offsetWidth / heroW,
+    }
+    // A loading screen shorter than the screen: the logo starts centred in it, fitted with a margin.
+    const short = firstH < chrome.clientHeight - 1
+    start = {
+      x: 0,
+      y: short ? firstH / 2 - chrome.clientHeight / 2 : 0,
+      scale: short ? Math.min(1, (firstH * 0.7) / logoLink.offsetHeight) : 1,
     }
 
     // The outline is a pill path starting at the top centre, drawn clockwise.
@@ -112,9 +123,9 @@ export function createHeader(sections) {
   function apply(f) {
     const move = easeInOutCubic(range(f, FORM_LOGO))
     const s = chrome.style
-    s.setProperty('--lx', `${hero.x * move}px`)
-    s.setProperty('--ly', `${hero.y * move}px`)
-    s.setProperty('--ls', 1 + (hero.scale - 1) * move)
+    s.setProperty('--lx', `${start.x + (hero.x - start.x) * move}px`)
+    s.setProperty('--ly', `${start.y + (hero.y - start.y) * move}px`)
+    s.setProperty('--ls', start.scale + (hero.scale - start.scale) * move)
     s.setProperty('--outline', 1 - range(f, FORM_LOGO))
 
     const drawn = range(f, FORM_OUTLINE)
@@ -273,7 +284,7 @@ export function createHeader(sections) {
       if (item.s === best) item.a.setAttribute('aria-current', 'true')
       else item.a.removeAttribute('aria-current')
     }
-    toggle.firstChild.nodeValue = best ? best.def.title : 'Menu'
+    toggle.firstChild.nodeValue = best ? best.def.title : 'منو'
   }
 
   // Titles jump to their section, the logo to the top. Modified clicks keep their

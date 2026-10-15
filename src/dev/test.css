@@ -1,0 +1,58 @@
+/* The test route's controls bar (src/dev/test.js). Tokens only. `?bare` leaves it out. */
+.tbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  box-sizing: border-box;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  font-size: 13px;
+  color: var(--text);
+}
+.tbar button,
+.tbar select {
+  font: inherit;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 6px 14px;
+  cursor: pointer;
+}
+.tbar button[aria-pressed='true'] {
+  background: var(--text);
+  color: var(--bg);
+}
+.tbar button:focus-visible,
+.tbar select:focus-visible,
+.tbar input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.tbar input[type='range'] {
+  width: 220px;
+  accent-color: var(--accent);
+}
+.tbar input[type='range']:disabled {
+  opacity: 0.4;
+}
+.tbar .tbar-group {
+  display: flex;
+  gap: 4px;
+}
+.tbar .tbar-info {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.tbar .tbar-time {
+  min-width: 7.5em;
+  text-align: center;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}

@@ -1,0 +1,818 @@
+/* The intro's finished states (plan/intro.md §3). Sizes come from the box (container
+   query units, the box is the size container) and are clamped. Tokens only. */
+
+/* ---------- Claim ---------- */
+
+.intro-claim {
+  --claim: clamp(26px, min(22cqh, 10cqw), 104px);
+  --pad: clamp(10px, min(8cqh, 4cqw), 40px);
+  box-sizing: border-box;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: var(--pad);
+  color: var(--text);
+}
+.intro-claim h1 {
+  position: relative; /* the caret of the animation is placed in it */
+  margin: 0;
+  font-size: var(--claim);
+  font-weight: 800;
+  line-height: 1.35;
+}
+/* One beat per line; a misfit shows up as the dev overflow warning, never as a third line. */
+/* flow-root: the animation's line masks have negative margins, which must not collapse
+   through the beat and shift the lines while it plays. */
+.claim-beat {
+  display: flow-root;
+  white-space: nowrap;
+}
+.claim-line {
+  margin: 0;
+  font-size: clamp(14px, calc(var(--claim) * 0.34), 28px);
+  font-weight: 400;
+  line-height: 1.8;
+}
+
+.claim-caret {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2px;
+  height: 1.05em;
+  border-radius: 1px;
+  background: var(--accent);
+  pointer-events: none;
+}
+
+/* Words while they are animated (src/core/words.js). */
+.word {
+  display: inline-block;
+}
+
+/* The interface that builds itself (claim-ui.js), placed by the container beside the text,
+   below it, or behind it and lighter where there is no room. The text stays on top. These
+   rules are its finished state; the animation overrides them with inline styles and clears
+   them at the end. The window is laid out in a fixed design space (560 × 266) and scaled. */
+.intro-claim {
+  position: relative;
+}
+.intro-claim[data-layout='below'] {
+  justify-content: flex-start;
+  padding-block-start: calc(var(--pad) + var(--lift, 0px));
+}
+.intro-claim h1,
+.claim-line {
+  z-index: 1;
+}
+.claim-line {
+  position: relative;
+}
+
+.claim-ui {
+  position: absolute;
+  inset: 0;
+  direction: ltr; /* art coordinates are physical */
+  pointer-events: none;
+}
+.cui-pos {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 560px;
+  height: 266px;
+  transform-origin: 0 0;
+}
+.cui-win {
+  position: absolute;
+  inset: 0;
+  direction: rtl;
+  box-sizing: border-box;
+  overflow: hidden;
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 22px 44px -10px var(--shadow);
+  font-size: 12px;
+  line-height: 1.5;
+}
+/* Behind the text the window rests faded back. */
+.claim-ui[data-behind] .cui-win {
+  opacity: var(--cui-rest, 0.22);
+}
+.cui-blk {
+  position: absolute;
+  box-sizing: border-box;
+}
+.cui-ghost,
+.cui-face {
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+}
+.cui-ghost {
+  background: color-mix(in srgb, var(--text) 14%, transparent);
+  opacity: 0;
+}
+.cui-face {
+  box-sizing: border-box;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+.cui-inner {
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  padding: 10px 12px;
+}
+
+/* header */
+.cui-head .cui-inner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-block: 0;
+}
+.cui-head h2 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 800;
+}
+.cui-search {
+  margin-inline-start: auto;
+  width: 120px;
+  height: 24px;
+  border-radius: 999px;
+  background: var(--bg);
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.cui-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--text);
+  color: var(--bg);
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 700;
+  flex: none;
+}
+
+/* sidebar */
+.cui-side .cui-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.cui-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  margin-bottom: 8px;
+}
+.cui-tile {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: var(--text);
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+.cui-tile svg {
+  width: 12px;
+  height: 14px;
+  fill: var(--bg);
+}
+.cui-brand i {
+  width: 44px;
+  height: 8px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--text) 30%, transparent);
+}
+.cui-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 30px;
+  padding: 0 8px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+.cui-nav i {
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--text) 35%, transparent);
+  flex: none;
+}
+.cui-nav.on {
+  background: var(--text);
+  color: var(--bg);
+  font-weight: 700;
+}
+.cui-nav.on i {
+  background: var(--bg);
+}
+
+/* stats */
+.cui-stat .cui-inner {
+  padding-block: 7px;
+}
+.cui-lab {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.cui-fig {
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.3;
+}
+.cui-fig small {
+  margin-inline-start: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* chart: violet while a bar grows, ink at rest */
+.cui-blk h3 {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 800;
+}
+.cui-bars {
+  position: absolute;
+  inset-inline: 14px;
+  bottom: 12px;
+  height: 82px;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  direction: ltr;
+}
+.cui-bars i {
+  position: relative;
+  flex: 1;
+  height: var(--bh);
+  border-radius: 5px 5px 3px 3px;
+  background: color-mix(in srgb, var(--text) 30%, transparent);
+  transform-origin: 50% 100%;
+}
+.cui-bars i.peak {
+  background: var(--text);
+}
+.cui-bars i::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--accent);
+  opacity: var(--grow, 0);
+}
+
+/* list */
+.cui-list .cui-inner {
+  padding-block: 9px;
+}
+.cui-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 5px;
+}
+.cui-row .cui-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--text) 22%, transparent);
+  flex: none;
+}
+.cui-row b {
+  display: block;
+  font-size: 11.5px;
+  line-height: 1.3;
+}
+.cui-row span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10.5px;
+  color: var(--text-muted);
+}
+.cui-row span::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  border: 1.5px solid var(--text);
+  box-sizing: border-box;
+}
+.cui-row.done span::before {
+  background: var(--text);
+}
+
+/* The designer's cursor and the smart guides: violet, and only while something moves. */
+.cui-cursor {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 20px;
+  height: 24px;
+  opacity: 0;
+  overflow: visible;
+}
+.cui-cursor path {
+  fill: var(--accent);
+  stroke: var(--bg);
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+}
+.cui-guide {
+  position: absolute;
+  background: var(--accent);
+  opacity: 0;
+}
+.cui-guide.v {
+  top: 0;
+  bottom: 0;
+  width: 1px;
+}
+.cui-guide.h {
+  left: 0;
+  right: 0;
+  height: 1px;
+}
+/* The finished build catches the light once. */
+.cui-gleam {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background: linear-gradient(100deg, transparent 38%, color-mix(in srgb, var(--text) 9%, transparent) 50%, transparent 62%);
+}
+
+/* Delivered: the chip hangs over the window's top end corner. */
+.cui-toast {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px 8px 10px;
+  border-radius: 999px;
+  background: var(--text);
+  color: var(--bg);
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  direction: rtl;
+  box-shadow: 0 12px 26px -6px var(--shadow);
+  transform-origin: 0 0;
+  transform: scale(var(--ts, 1));
+}
+.cui-tick {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--bg);
+  color: var(--text);
+  display: grid;
+  place-items: center;
+}
+.cui-tick::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  opacity: var(--ring, 0);
+}
+.cui-tick svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ---------- Receipts ---------- */
+
+/* Card (the default): mark and figure on line 1, the caption below. The figure and
+   caption are centred in the card above a band at the bottom (the year's ruler lives
+   there). Every card reserves the same band and two caption lines, so the three
+   figures sit at the same height whatever the captions say. */
+.receipt {
+  --pad: clamp(10px, min(10cqh, 6cqw), 28px);
+  --fig: clamp(26px, min(28cqh, 17cqw), 96px);
+  --cap: clamp(12px, min(7cqh, 4.4cqw), 18px);
+  --band: clamp(10px, 8cqh, 22px); /* the year's ruler */
+  position: relative;
+  box-sizing: border-box;
+  height: 100%;
+  margin: 0;
+  padding: var(--pad);
+  padding-block-end: calc(var(--pad) + var(--band) + 6px);
+  display: grid;
+  grid-template-columns: [mark] auto [figure] auto [rest] 1fr;
+  grid-template-rows: auto minmax(calc(var(--cap) * 1.75 * 2 + var(--fig) * 0.1), auto);
+  align-content: center;
+  align-items: center;
+  color: var(--text);
+}
+.receipt-mark {
+  grid-column: mark;
+  margin-inline-end: 0.3em;
+  font-size: var(--fig);
+}
+.receipt-figure {
+  position: relative; /* the paste selection sits in it */
+  grid-column: figure;
+  font-size: var(--fig);
+  font-weight: 800;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+.receipt-caption {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  align-self: start;
+  margin-block-start: calc(var(--fig) * 0.1); /* clears the crop marks under the figure */
+  font-size: var(--cap);
+  font-weight: 400;
+  line-height: 1.75;
+  text-wrap: balance;
+}
+
+/* Strip (portrait): mark and figure at the start, the caption beside them toward the end. */
+@container (aspect-ratio > 2.6) {
+  .receipt {
+    --fig: clamp(26px, 40cqh, 72px);
+    --cap: clamp(13px, 15cqh, 17px);
+    /* One row, centred in the whole box; the year's ruler fits under it. */
+    grid-template-rows: auto;
+    padding-block-end: var(--pad);
+  }
+  .receipt-caption {
+    grid-column: rest;
+    grid-row: 1;
+    align-self: center;
+    justify-self: end;
+    margin-block-start: 0;
+    margin-inline-start: 12px;
+  }
+}
+
+/* Compact card (sideways phones): the card with the minimum sizes. */
+@container (aspect-ratio <= 2.6) and (height < 130px) {
+  .receipt {
+    --pad: 8px;
+    --cap: 12px;
+    --band: 8px;
+  }
+}
+
+/* ---------- Receipt 1: a retro game ---------- */
+
+/* The scene (systems-art.js) fills the card behind the text; the figure and caption read as one
+   sentence at the top, at the start. Its colours are the `--px-*` tokens in style.css: a sunset in
+   the light theme, dusk in the dark one. */
+.receipt:is([data-kind='systems'], [data-kind='year'], [data-kind='team']) {
+  align-content: start;
+  padding-block-end: var(--pad);
+  grid-template-rows: auto;
+}
+.receipt:is([data-kind='systems'], [data-kind='year'], [data-kind='team']) > :is(.receipt-figure, .receipt-caption) {
+  z-index: 1;
+}
+.receipt:is([data-kind='systems'], [data-kind='year'], [data-kind='team']) > .receipt-caption {
+  position: relative;
+  grid-column: rest;
+  grid-row: 1;
+  align-self: center;
+  justify-self: start;
+  margin-block-start: 0;
+  margin-inline-start: 0.5em;
+}
+.px-stage {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  direction: ltr; /* the scene's coordinates are physical */
+}
+.px-stage svg {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  display: block;
+}
+.px-o {
+  fill: var(--px-outline);
+}
+.px-sk {
+  fill: var(--px-skin);
+}
+.px-ss {
+  fill: var(--px-skin-shade);
+}
+.px-hr {
+  fill: var(--px-hair);
+}
+.px-ht {
+  fill: var(--px-hat);
+}
+.px-hh {
+  fill: var(--px-hat-hi);
+}
+.px-hs {
+  fill: var(--px-hat-shade);
+}
+.px-sh {
+  fill: var(--px-shirt);
+}
+.px-sd {
+  fill: var(--px-shirt-shade);
+}
+.px-sl {
+  fill: var(--px-shirt-hi);
+}
+.px-pa {
+  fill: var(--px-pants);
+}
+.px-pd {
+  fill: var(--px-pants-shade);
+}
+.px-bt {
+  fill: var(--px-boots);
+}
+.px-wl {
+  fill: var(--px-wood-hi);
+}
+.px-wm {
+  fill: var(--px-wood);
+}
+.px-wd {
+  fill: var(--px-wood-dark);
+}
+.px-nl {
+  fill: var(--px-nail);
+}
+.px-lb {
+  fill: var(--px-label);
+}
+.px-tk {
+  fill: var(--px-trunk);
+}
+.px-tl {
+  fill: var(--px-trunk-hi);
+}
+.px-td {
+  fill: var(--px-trunk-shade);
+}
+.px-lh {
+  fill: var(--px-leaf-hi);
+}
+.px-lf {
+  fill: var(--px-leaf);
+}
+.px-ld {
+  fill: var(--px-leaf-shade);
+}
+.px-fr {
+  fill: var(--px-fruit);
+}
+.px-gh {
+  fill: var(--px-grass-hi);
+}
+.px-gr {
+  fill: var(--px-grass);
+}
+.px-gd {
+  fill: var(--px-grass-shade);
+}
+.px-dt {
+  fill: var(--px-dirt);
+}
+.px-dd {
+  fill: var(--px-dirt-shade);
+}
+.px-pb {
+  fill: var(--px-pebble);
+}
+.px-cl {
+  fill: var(--px-cloud);
+}
+.px-cs {
+  fill: var(--px-cloud-shade);
+}
+.px-su {
+  fill: var(--px-sun);
+}
+.px-sg {
+  fill: var(--px-sun-glow);
+}
+.px-h1 {
+  fill: var(--px-hill-far);
+}
+.px-h2 {
+  fill: var(--px-hill-near);
+}
+.px-s0 {
+  fill: var(--px-sky-0);
+}
+.px-s1 {
+  fill: var(--px-sky-1);
+}
+.px-s2 {
+  fill: var(--px-sky-2);
+}
+.px-s3 {
+  fill: var(--px-sky-3);
+}
+.px-s4 {
+  fill: var(--px-sky-4);
+}
+.px-star {
+  fill: var(--px-star);
+}
+/* Violet only while something moves: the dust and the sparkles. */
+.px-a,
+.px-fx {
+  fill: var(--accent);
+}
+
+/* ---------- Receipt 2: one year, an orrery ---------- */
+
+/* The scene (year-art.js) fills the card behind the text, as the pixel scene does; its text is
+   light, since the card is space whichever the theme. */
+.receipt[data-kind='year'] {
+  --fig: clamp(22px, min(17cqh, 9cqw), 56px);
+  --cap: clamp(11px, min(5.6cqh, 3.3cqw), 15px);
+  color: var(--sp-text);
+}
+.orb-stage {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--sp-void);
+  pointer-events: none;
+}
+.orb-stage > img,
+.orb-stage > canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* ---------- Receipt 3: a ritual, a bear torn in two ---------- */
+
+.receipt[data-kind='team'] {
+  --fig: clamp(22px, min(17cqh, 9cqw), 56px);
+  --cap: clamp(11px, min(5.6cqh, 3.3cqw), 15px);
+}
+
+/* The scene (team-art.js) fills the card behind the text, as the others do: ink line art in the
+   `--rit-*` tokens of style.css. */
+.rit-stage {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  direction: ltr; /* the scene's coordinates are physical */
+}
+.rit-stage svg {
+  position: absolute;
+  inset: 0;
+  display: block;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+/* Ink: white bodies with a bold outline, stipple, solid black details. */
+.rit-body {
+  fill: var(--rit-paper);
+  stroke: var(--rit-line);
+  stroke-width: var(--lw);
+}
+.rit-thin {
+  stroke-width: calc(var(--lw) * 0.6);
+}
+.rit-edge {
+  fill: none;
+  stroke: var(--rit-line);
+  stroke-width: calc(var(--lw) * 0.6);
+}
+.rit-ink {
+  fill: var(--rit-line);
+}
+.rit-dots {
+  fill: none;
+  stroke: var(--rit-line);
+  stroke-width: var(--dot);
+}
+.rit-shine {
+  fill: var(--rit-paper);
+}
+.rit-stitch,
+.rit-grin {
+  fill: none;
+  stroke: var(--rit-line);
+  stroke-width: calc(var(--lw) * 0.55);
+}
+.rit-grin {
+  stroke-width: calc(var(--lw) * 0.7);
+}
+.rit-scar {
+  fill: none;
+  stroke: var(--rit-line);
+  stroke-width: calc(var(--lw) * 0.4);
+}
+.rit-glow {
+  fill: var(--rit-paper);
+  opacity: 0.55;
+}
+/* The circle at rest: faint chalk in ink, so it follows the theme. */
+.rit-chalk {
+  fill: none;
+  stroke: var(--text);
+  stroke-width: calc(var(--lw) * 0.5);
+  opacity: 0.32;
+}
+/* Violet only while something moves: the circle's magic, the crack, the growing edge. */
+.rit-magic {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: calc(var(--lw) * 0.7);
+}
+.rit-crack {
+  fill: none;
+  stroke: var(--rit-line);
+  stroke-width: var(--lw);
+}
+.rit-smoke {
+  fill: none;
+  stroke: var(--text);
+  stroke-width: calc(var(--lw) * 0.4);
+}
+/* The only colours, lit at rest too: the evil one's eyes and the angel's halo. */
+.rit-eye {
+  fill: var(--rit-eye);
+}
+.rit-eye-core {
+  fill: var(--rit-eye-core);
+}
+.rit-halo {
+  fill: none;
+  stroke: var(--rit-gold);
+  stroke-width: calc(var(--lw) * 1.2);
+}
+.rit-halo-glow {
+  stroke-width: calc(var(--lw) * 2.4);
+}
+.rit-halo-hi {
+  fill: none;
+  stroke: var(--rit-gold-hi);
+  stroke-width: calc(var(--lw) * 0.45);
+}
+
+/* Paste: a selection around the figure, with square handles at its corners (the receipts' last beat). */
+.selection {
+  position: absolute;
+  inset: -0.06em -0.14em;
+  border: 1px solid var(--accent);
+  pointer-events: none;
+}
+.selection b {
+  position: absolute;
+  box-sizing: border-box;
+  width: 5px;
+  height: 5px;
+  border: 1px solid var(--accent);
+  background: var(--box-fill, var(--surface));
+}
+.selection b:nth-child(1) {
+  inset-block-start: -3px;
+  inset-inline-start: -3px;
+}
+.selection b:nth-child(2) {
+  inset-block-start: -3px;
+  inset-inline-end: -3px;
+}
+.selection b:nth-child(3) {
+  inset-block-end: -3px;
+  inset-inline-start: -3px;
+}
+.selection b:nth-child(4) {
+  inset-block-end: -3px;
+  inset-inline-end: -3px;
+}

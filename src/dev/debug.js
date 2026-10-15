@@ -24,8 +24,8 @@ export function mountGridOverlay(sections = []) {
         if (header) cell.dataset.kind = 'header'
         else if (!inDesign) cell.dataset.kind = 'spare'
         cell.style.cssText = `left:${geo.x[c]}px;top:${geo.y[r]}px;width:${geo.x[c + 1] - geo.x[c]}px;height:${geo.y[r + 1] - geo.y[r]}px`
-        // Design-grid numbers are 1-based, as items use them.
-        if (inDesign) cell.textContent = `${c - colStart + 1},${r - rowStart + 1}`
+        // Design-grid numbers are 1-based, as items use them, and count from the start edge.
+        if (inDesign) cell.textContent = `${geo.rtl ? colStart + design.cols - c : c - colStart + 1},${r - rowStart + 1}`
         out.push(cell)
       }
     }
@@ -47,11 +47,11 @@ export function mountGridOverlay(sections = []) {
     }
 
     info.textContent = [
-      `${geo.profile}  ${geo.width}x${geo.height}`,
+      `${geo.profile}  ${geo.width}x${geo.height}  ${geo.rtl ? 'rtl' : 'ltr'}`,
       `screen grid ${geo.cols}x${geo.rows}  (design ${geo.design.cols}x${geo.design.rows})`,
       `cell ${geo.cellW.toFixed(1)}x${geo.cellH.toFixed(1)}`,
       `section height ${geo.sectionHeight.toFixed(0)}`,
-      `design starts col ${geo.colStart}, row ${geo.rowStart}`,
+      `design starts at screen col ${geo.colStart} (from the left), row ${geo.rowStart}`,
     ].join('\n')
   }
 

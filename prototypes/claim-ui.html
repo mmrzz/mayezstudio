@@ -1,0 +1,939 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>claim · prototype</title>
+    <!-- Reference prototype of the claim as a real interface that builds itself (not wired into the
+         site). Open at /prototypes/claim-ui.html while `npm run dev` runs. It uses the site's
+         tokens and font, so light and dark follow src/style.css. Every colour is a var(--token).
+         Query: ?speed=0.25  ?t=2.2 (freeze at a time)  ?size=wide|tablet|phone|large -->
+    <link rel="stylesheet" href="/src/style.css" />
+    <script>
+      try {
+        const theme = localStorage.getItem('theme')
+        if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme
+      } catch {}
+    </script>
+    <style>
+      body {
+        min-height: 100vh;
+        display: grid;
+        grid-template-rows: auto 1fr;
+        justify-items: center;
+        gap: 20px;
+        padding: 20px 16px 40px;
+        box-sizing: border-box;
+      }
+
+      /* ---------- Controls (not part of the design) ---------- */
+      .bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+      }
+      .bar button,
+      .bar select {
+        font: inherit;
+        color: var(--text);
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        padding: 6px 14px;
+        cursor: pointer;
+      }
+      .bar button[aria-pressed='true'] {
+        background: var(--text);
+        color: var(--bg);
+      }
+      .bar input[type='range'] {
+        width: 220px;
+        accent-color: var(--accent);
+      }
+      .stagewrap {
+        align-self: center;
+        max-width: 100%;
+      }
+
+      /* ---------- The claim box (as the container is on the page) ---------- */
+      .claimbox {
+        --w: min(1155px, calc(100vw - 32px));
+        --h: 280px;
+        position: relative;
+        overflow: hidden;
+        box-sizing: border-box;
+        width: var(--w);
+        height: var(--h);
+        max-width: calc(100vw - 32px);
+        container-type: size;
+        background: var(--tone-sun);
+        border: 2px solid var(--tone-sun-edge);
+        border-radius: 16px;
+        color: var(--text);
+      }
+
+      /* Text: the same as intro.css */
+      .text {
+        --claim: clamp(26px, min(22cqh, 10cqw), 104px);
+        position: absolute;
+        inset-block: 0;
+        inset-inline-start: 0;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: clamp(10px, min(8cqh, 4cqw), 40px);
+        z-index: 2;
+      }
+      .claimbox[data-layout='below'] .text {
+        inset-block-end: auto;
+        justify-content: flex-start;
+      }
+      .text h1 {
+        position: relative;
+        margin: 0;
+        font-size: var(--claim);
+        font-weight: 800;
+        line-height: 1.35;
+      }
+      .beat {
+        display: flow-root;
+        white-space: nowrap;
+        clip-path: inset(-0.3em -1em -0.3em -1em);
+      }
+      .line {
+        position: relative;
+        margin: 0;
+        font-size: clamp(14px, calc(var(--claim) * 0.34), 28px);
+        font-weight: 400;
+        line-height: 1.8;
+      }
+      .w {
+        display: inline-block;
+      }
+      .caret {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 2px;
+        height: 1.05em;
+        border-radius: 1px;
+        background: var(--accent);
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      /* ---------- The interface being built ---------- */
+      .art {
+        position: absolute;
+        inset: 0;
+        direction: ltr; /* art coordinates are physical */
+        pointer-events: none;
+        z-index: 1;
+      }
+      .pos {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 560px;
+        height: 266px;
+        transform-origin: 0 0;
+      }
+      .win {
+        position: absolute;
+        inset: 0;
+        direction: rtl;
+        box-sizing: border-box;
+        overflow: hidden;
+        background: var(--bg);
+        border: 1.5px solid var(--border);
+        border-radius: 14px;
+        box-shadow: 0 22px 44px -10px var(--shadow);
+        font-size: 12px;
+        line-height: 1.5;
+        opacity: 0;
+      }
+      .blk {
+        position: absolute;
+        box-sizing: border-box;
+        will-change: transform;
+      }
+      .ghost,
+      .face {
+        position: absolute;
+        inset: 0;
+        border-radius: 10px;
+        opacity: 0;
+      }
+      .ghost {
+        background: color-mix(in srgb, var(--text) 14%, transparent);
+      }
+      .face {
+        box-sizing: border-box;
+        background: var(--surface);
+        border: 1px solid var(--border);
+      }
+      .inner {
+        position: absolute;
+        inset: 0;
+        box-sizing: border-box;
+        padding: 10px 12px;
+        opacity: 0;
+      }
+      .muted {
+        color: var(--text-muted);
+      }
+
+      /* header */
+      .head .inner {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding-block: 0;
+      }
+      .head h2 {
+        margin: 0;
+        font-size: 14px;
+        font-weight: 800;
+      }
+      .head .search {
+        margin-inline-start: auto;
+        width: 120px;
+        height: 24px;
+        border-radius: 999px;
+        background: var(--bg);
+        padding: 0 10px;
+        display: flex;
+        align-items: center;
+        font-size: 11px;
+        color: var(--text-muted);
+      }
+      .avatar {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        background: var(--text);
+        color: var(--bg);
+        display: grid;
+        place-items: center;
+        font-size: 12px;
+        font-weight: 700;
+        flex: none;
+      }
+
+      /* sidebar */
+      .side .inner {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .side .brand {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        height: 34px;
+        margin-bottom: 8px;
+      }
+      .tile {
+        width: 26px;
+        height: 26px;
+        border-radius: 8px;
+        background: var(--text);
+        display: grid;
+        place-items: center;
+        flex: none;
+      }
+      .tile svg {
+        width: 12px;
+        height: 14px;
+        fill: var(--bg);
+      }
+      .brand .bar-a {
+        width: 44px;
+        height: 8px;
+        border-radius: 4px;
+        background: color-mix(in srgb, var(--text) 30%, transparent);
+      }
+      .nav {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        height: 30px;
+        padding: 0 8px;
+        border-radius: 8px;
+        font-size: 12px;
+        opacity: 0;
+      }
+      .nav i {
+        width: 12px;
+        height: 12px;
+        border-radius: 4px;
+        background: color-mix(in srgb, var(--text) 35%, transparent);
+        flex: none;
+      }
+      .nav.on {
+        background: var(--text);
+        color: var(--bg);
+        font-weight: 700;
+      }
+      .nav.on i {
+        background: var(--bg);
+      }
+
+      /* stats */
+      .stat .lab {
+        font-size: 11px;
+        color: var(--text-muted);
+      }
+      .stat .inner {
+        padding-block: 7px;
+      }
+      .stat .fig {
+        margin-top: 0;
+        font-size: 22px;
+        font-weight: 800;
+        line-height: 1.3;
+      }
+      .stat small {
+        margin-inline-start: 4px;
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--text-muted);
+      }
+
+      /* chart */
+      .list .inner {
+        padding-block: 9px;
+      }
+      .chart h3,
+      .list h3 {
+        margin: 0;
+        font-size: 12px;
+        font-weight: 800;
+      }
+      .bars {
+        position: absolute;
+        inset-inline: 14px;
+        bottom: 12px;
+        height: 82px;
+        display: flex;
+        align-items: flex-end;
+        gap: 8px;
+        direction: ltr;
+      }
+      .bar-col {
+        position: relative;
+        flex: 1;
+        height: var(--bh);
+        border-radius: 5px 5px 3px 3px;
+        background: color-mix(in srgb, var(--text) 30%, transparent);
+        transform-origin: 50% 100%;
+        transform: scaleY(0);
+      }
+      .bar-col.peak {
+        background: var(--text);
+      }
+      .bar-col::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: var(--accent);
+        opacity: var(--grow, 0);
+      }
+
+      /* list */
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 5px;
+        opacity: 0;
+      }
+      .row .dot {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: color-mix(in srgb, var(--text) 22%, transparent);
+        flex: none;
+      }
+      .row b {
+        display: block;
+        font-size: 11.5px;
+        line-height: 1.3;
+      }
+      .row span {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 10.5px;
+        color: var(--text-muted);
+      }
+      .row span::before {
+        content: '';
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        border: 1.5px solid var(--text);
+        box-sizing: border-box;
+      }
+      .row.done span::before {
+        background: var(--text);
+      }
+
+      /* the designer's cursor and smart guides: violet only while something moves */
+      .cursor {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 20px;
+        height: 24px;
+        opacity: 0;
+        z-index: 4;
+        overflow: visible;
+      }
+      .cursor path {
+        fill: var(--accent);
+        stroke: var(--bg);
+        stroke-width: 1.4;
+        stroke-linejoin: round;
+      }
+      .guide {
+        position: absolute;
+        background: var(--accent);
+        opacity: 0;
+      }
+      .guide.v {
+        top: 0;
+        bottom: 0;
+        width: 1px;
+      }
+      .guide.h {
+        left: 0;
+        right: 0;
+        height: 1px;
+      }
+      .gleam {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        background: linear-gradient(100deg, transparent 38%, color-mix(in srgb, var(--text) 9%, transparent) 50%, transparent 62%);
+      }
+
+      /* delivered */
+      .toast {
+        position: absolute;
+        z-index: 3;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 14px 8px 10px;
+        border-radius: 999px;
+        background: var(--text);
+        color: var(--bg);
+        font-size: 14px;
+        font-weight: 700;
+        white-space: nowrap;
+        direction: rtl;
+        box-shadow: 0 12px 26px -6px var(--shadow);
+        transform-origin: 0 0;
+        opacity: 0;
+      }
+      .tick {
+        position: relative;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: var(--bg);
+        color: var(--text);
+        display: grid;
+        place-items: center;
+      }
+      .tick::after {
+        content: '';
+        position: absolute;
+        inset: -4px;
+        border-radius: 50%;
+        border: 2px solid var(--accent);
+        opacity: var(--ring, 0);
+      }
+      .tick svg {
+        width: 14px;
+        height: 14px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2.6;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="bar">
+      <button id="replay">پخش دوباره</button>
+      <input id="scrub" type="range" min="0" max="1" step="0.001" value="0" aria-label="زمان" />
+      <select id="speed" aria-label="سرعت">
+        <option value="1">۱×</option>
+        <option value="0.5">۰٫۵×</option>
+        <option value="0.25">۰٫۲۵×</option>
+      </select>
+      <button id="theme">روشن / تیره</button>
+      <span id="sizes"></span>
+    </div>
+
+    <div class="stagewrap">
+      <section class="claimbox" id="box" data-layout="beside">
+        <div class="text" id="text">
+          <h1>
+            <span class="beat">ایده از شما،</span>
+            <span class="beat">طراحی و ساخت از ما.</span>
+            <i class="caret" id="caret"></i>
+          </h1>
+          <p class="line">یک تیم، از ایده تا تحویل.</p>
+        </div>
+
+        <div class="art" aria-hidden="true">
+          <div class="pos" id="pos">
+            <div class="win" id="win">
+              <!-- 0 header -->
+              <div class="blk head" data-g="12,12,388,36">
+                <div class="ghost"></div><div class="face"></div>
+                <div class="inner">
+                  <div class="avatar">م</div>
+                  <h2>پیشخوان</h2>
+                  <div class="search">جستجو…</div>
+                </div>
+              </div>
+              <!-- 1 sidebar -->
+              <div class="blk side" data-g="412,12,136,239">
+                <div class="ghost"></div><div class="face"></div>
+                <div class="inner">
+                  <div class="brand">
+                    <div class="tile"><svg viewBox="0 0 12 14"><path d="M4.2 0.6C4.4 0.1 4.7 0 5.2 0h6c0.5 0 0.7 0.1 0.5 0.6L7.8 13.4C7.6 13.9 7.3 14 6.8 14h-6C0.3 14 0.1 13.9 0.3 13.4Z" /></svg></div>
+                    <div class="bar-a"></div>
+                  </div>
+                  <div class="nav on"><i></i>پیشخوان</div>
+                  <div class="nav"><i></i>سفارش&zwnj;ها</div>
+                  <div class="nav"><i></i>مشتریان</div>
+                  <div class="nav"><i></i>گزارش&zwnj;ها</div>
+                  <div class="nav"><i></i>تنظیمات</div>
+                </div>
+              </div>
+              <!-- 2 3 4 stats -->
+              <div class="blk stat" data-g="12,54,124,54">
+                <div class="ghost"></div><div class="face"></div>
+                <div class="inner"><div class="lab">سفارش امروز</div><div class="fig"><span class="num">۱٬۲۴۸</span></div></div>
+              </div>
+              <div class="blk stat" data-g="144,54,124,54">
+                <div class="ghost"></div><div class="face"></div>
+                <div class="inner"><div class="lab">رضایت مشتری</div><div class="fig"><span class="num">۹۶</span><small>٪</small></div></div>
+              </div>
+              <div class="blk stat" data-g="276,54,124,54">
+                <div class="ghost"></div><div class="face"></div>
+                <div class="inner"><div class="lab">میانگین پاسخ</div><div class="fig"><span class="num">۱٫۲</span><small>ثانیه</small></div></div>
+              </div>
+              <!-- 5 chart -->
+              <div class="blk chart" data-g="12,114,224,137">
+                <div class="ghost"></div><div class="face"></div>
+                <div class="inner">
+                  <h3>فروش هفته</h3>
+                  <div class="bars" id="bars"></div>
+                </div>
+              </div>
+              <!-- 6 list -->
+              <div class="blk list" data-g="244,114,156,137">
+                <div class="ghost"></div><div class="face"></div>
+                <div class="inner">
+                  <h3>آخرین سفارش&zwnj;ها</h3>
+                  <div class="row done"><i class="dot"></i><div><b>سفارش ۱۰۴۲</b><span>تحویل شد</span></div></div>
+                  <div class="row"><i class="dot"></i><div><b>سفارش ۱۰۴۳</b><span>در راه</span></div></div>
+                  <div class="row"><i class="dot"></i><div><b>سفارش ۱۰۴۴</b><span>جدید</span></div></div>
+                </div>
+              </div>
+
+              <i class="guide v" style="left: 406px"></i>
+              <i class="guide v" style="left: 140px"></i>
+              <i class="guide h" style="top: 51px"></i>
+              <i class="guide h" style="top: 111px"></i>
+              <div class="gleam" id="sheen"></div>
+            </div>
+            <svg class="cursor" id="cursor" viewBox="0 0 20 24"><path d="M2 2 L2 19 L6.4 15 L9.6 22 L12.4 20.8 L9.2 14 L15 14 Z" /></svg>
+          </div>
+
+          <div class="toast" id="toast">
+            <span class="tick"><svg viewBox="0 0 14 14"><path id="tickpath" d="M2.5 7.5 L5.6 10.5 L11.5 3.8" /></svg></span>
+            <span>تحویل شد</span>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script type="module">
+      // ---------- Time: one pure function of t, like a Theatre timeline ----------
+      const W = 560
+      const H = 266
+      const T_END = 4.6
+
+      const bez = (x1, y1, x2, y2) => {
+        const cx = 3 * x1, bx = 3 * (x2 - x1) - cx, ax = 1 - cx - bx
+        const cy = 3 * y1, by = 3 * (y2 - y1) - cy, ay = 1 - cy - by
+        const X = (s) => ((ax * s + bx) * s + cx) * s
+        const Y = (s) => ((ay * s + by) * s + cy) * s
+        const dX = (s) => (3 * ax * s + 2 * bx) * s + cx
+        return (x) => {
+          if (x <= 0) return 0
+          if (x >= 1) return 1
+          let s = x
+          for (let i = 0; i < 8; i++) {
+            const e = X(s) - x
+            if (Math.abs(e) < 1e-5) break
+            const d = dX(s)
+            if (Math.abs(d) < 1e-6) break
+            s -= e / d
+          }
+          return Y(s)
+        }
+      }
+      // The house eases (src/config.js CURVES)
+      const E = { land: bez(0.16, 1, 0.3, 1), settle: bez(0.3, 1.5, 0.5, 1), inout: bez(0.65, 0, 0.35, 1), out: bez(0.25, 0.8, 0.35, 1) }
+      const clamp = (x) => Math.min(1, Math.max(0, x))
+      const seg = (t, start, dur, ease = E.land) => ease(clamp((t - start) / dur))
+      const lerp = (a, b, u) => a + (b - a) * u
+
+      const FA = '۰۱۲۳۴۵۶۷۸۹'
+      const fa = (n, d = 0) => {
+        const [i, f] = n.toFixed(d).split('.')
+        return (i.replace(/\B(?=(\d{3})+(?!\d))/g, '٬') + (f ? '٫' + f : '')).replace(/\d/g, (x) => FA[x])
+      }
+
+      // ---------- Elements ----------
+      const $ = (s, r = document) => r.querySelector(s)
+      const $$ = (s, r = document) => [...r.querySelectorAll(s)]
+      const box = $('#box'), text = $('#text'), pos = $('#pos'), win = $('#win'), toast = $('#toast')
+      const cursor = $('#cursor'), sheen = $('#sheen'), caret = $('#caret'), tickpath = $('#tickpath')
+      const guides = $$('.guide')
+
+      const blks = $$('.blk').map((el) => {
+        const [x, y, w, h] = el.dataset.g.split(',').map(Number)
+        Object.assign(el.style, { left: `${x}px`, top: `${y}px`, width: `${w}px`, height: `${h}px` })
+        return { el, x, y, w, h, ghost: $('.ghost', el), face: $('.face', el), inner: $('.inner', el) }
+      })
+      const navs = $$('.nav')
+      const nums = $$('.stat .num')
+      const STATS = [{ v: 1248, d: 0 }, { v: 96, d: 0 }, { v: 1.2, d: 1 }]
+      const BAR_H = [30, 48, 36, 66, 54, 84, 72]
+      const bars = BAR_H.map((h, k) => {
+        const b = document.createElement('i')
+        b.className = 'bar-col' + (k === 5 ? ' peak' : '')
+        b.style.setProperty('--bh', `${h}px`)
+        $('#bars').append(b)
+        return b
+      })
+      const rows = $$('.row')
+
+      // Words only (D-011): the claim's words rise from behind their line.
+      function splitWords(el) {
+        const words = el.textContent.trim().split(/\s+/)
+        el.textContent = ''
+        return words.map((word, i) => {
+          const s = document.createElement('span')
+          s.className = 'w'
+          s.textContent = word
+          el.append(s)
+          if (i < words.length - 1) el.append(' ')
+          return s
+        })
+      }
+      const [beat1El, beat2El] = $$('.beat')
+      const lineEl = $('.line')
+      const split = [splitWords(beat1El), splitWords(beat2El), splitWords(lineEl)]
+
+      // ---------- The score: every number lives here ----------
+      const S = {
+        win: 0.05,
+        beat1: 0.35, beat1Stagger: 0.06, word: 0.5,
+        beat2: 1.35, beat2Stagger: 0.12,
+        caretOff: 2.5,
+        rough: 0.55, roughStagger: 0.12, // blocks appear, rough and a little crooked, as the cursor places them
+        snap: 1.5, snapStagger: 0.05, // they snap into the grid; the smart guides flash
+        build: 2.1, buildStagger: 0.06, // the content writes in
+        stats: 2.2, bars: 2.45, barStagger: 0.06, rows: 2.8,
+        line: 3.05, lineWord: 0.45, lineStagger: 0.1, lineRise: 0.3,
+        sheen: 3.3,
+        toast: 3.55,
+      }
+      // rough position of each block while it is only an idea: x, y, degrees
+      const ROUGH = [[-16, 10, 2.4], [12, -12, -1.8], [-9, -14, 1.6], [12, 8, -2.2], [-10, 12, 1.4], [14, -8, -2.6], [-12, -10, 2]]
+      const centre = (b) => [b.x + b.w / 2, b.y + b.h / 2]
+      const WAY = [[0.1, -50, 345], ...blks.map((b, i) => [S.rough + i * S.roughStagger - 0.05, ...centre(b)]), [S.snap + 0.1, 610, 390]]
+
+      // layout results (set by layout())
+      let L = { x: 0, y: 0, s: 1, ts: 1, behind: false }
+      const endTime = () => (L.behind ? 6.3 : T_END)
+      const TEXT_LATE = 2.1 // behind the text: the text starts after the window has built and stepped back
+      let stops = []
+
+      function render(t) {
+        // the window arrives
+        const wp = seg(t, S.win, 0.55)
+        win.style.opacity = clamp(seg(t, S.win, 0.3, E.inout)) * (L.behind ? 1 - 0.7 * seg(t, 1.9, 0.6, E.inout) : 1)
+        win.style.transform = `translateY(${(1 - wp) * 28}px) scale(${0.965 + 0.035 * wp})`
+
+        // blocks: rough -> snapped -> filled
+        blks.forEach((b, i) => {
+          const a = seg(t, S.rough + i * S.roughStagger, 0.35)
+          const k = seg(t, S.snap + i * S.snapStagger, 0.5)
+          const c = seg(t, S.build + i * S.buildStagger, 0.5)
+          const [rx, ry, rr] = ROUGH[i]
+          const rough = 1 - k
+          b.el.style.transform = `translate(${rx * rough}px, ${ry * rough}px) rotate(${rr * rough}deg) scale(${0.9 + 0.1 * a})`
+          b.ghost.style.opacity = a * (1 - clamp(k))
+          b.face.style.opacity = clamp(k)
+          b.inner.style.opacity = clamp(c)
+          b.inner.style.transform = `translateY(${(1 - c) * 6}px)`
+        })
+        navs.forEach((n, i) => {
+          const u = seg(t, S.build + 0.15 + i * 0.07, 0.4)
+          n.style.opacity = u
+          n.style.transform = `translateX(${(1 - u) * 8}px)`
+        })
+
+        // the designer's cursor
+        let cx = WAY[0][1], cy = WAY[0][2]
+        for (let i = 0; i < WAY.length - 1; i++) {
+          const [t0, x0, y0] = WAY[i], [t1, x1, y1] = WAY[i + 1]
+          if (t >= t0 && t < t1) {
+            const u = E.inout((t - t0) / (t1 - t0))
+            cx = lerp(x0, x1, u)
+            cy = lerp(y0, y1, u)
+          } else if (t >= t1) {
+            cx = x1
+            cy = y1
+          }
+        }
+        cursor.style.opacity = seg(t, 0.1, 0.2, E.inout) * (1 - seg(t, S.snap + 0.05, 0.3, E.inout))
+        cursor.style.transform = `translate(${cx - 2}px, ${cy - 2}px)`
+
+        // smart guides flash as the blocks snap
+        guides.forEach((g, i) => {
+          const s0 = S.snap + i * 0.06
+          g.style.opacity = seg(t, s0, 0.1, E.inout) * (1 - seg(t, s0 + 0.2, 0.3, E.inout))
+        })
+
+        // numbers count up, the bars grow (violet while growing, ink at rest)
+        nums.forEach((n, i) => {
+          const p = seg(t, S.stats + i * 0.1, 0.9, E.out)
+          n.textContent = fa(STATS[i].v * p, STATS[i].d)
+        })
+        bars.forEach((b, k) => {
+          const s0 = S.bars + k * S.barStagger
+          const g = seg(t, s0, 0.6, E.settle)
+          b.style.transform = `scaleY(${g})`
+          b.style.setProperty('--grow', t > s0 ? 1 - seg(t, s0 + 0.5, 0.35, E.inout) : 0)
+        })
+        rows.forEach((r, j) => {
+          const u = seg(t, S.rows + j * 0.12, 0.5)
+          r.style.opacity = u
+          r.style.transform = `translateY(${(1 - u) * 8}px)`
+        })
+
+        // the build catches the light once
+        const sp = seg(t, S.sheen, 0.8, E.inout)
+        sheen.style.opacity = sp > 0 && sp < 1 ? 1 : 0
+        sheen.style.transform = `translateX(${lerp(-100, 100, sp)}%)`
+
+        // delivered
+        const tp = seg(t, S.toast, 0.6, E.settle)
+        toast.style.opacity = clamp(seg(t, S.toast, 0.25, E.inout))
+        toast.style.transform = `translateY(${(1 - tp) * 18}px) scale(${(0.94 + 0.06 * tp) * L.ts})`
+        toast.style.setProperty('--ring', (t > S.toast ? 1 : 0) * (1 - seg(t, S.toast + 0.35, 0.4, E.inout)))
+        const len = tickpath.getTotalLength?.() ?? 12
+        tickpath.style.strokeDasharray = len
+        tickpath.style.strokeDashoffset = len * (1 - seg(t, S.toast + 0.15, 0.3, E.inout))
+
+        renderText(t)
+      }
+
+      function renderText(t) {
+        const o = L.behind ? TEXT_LATE : 0
+        const rise = (words, start, stagger) => {
+          const elapsed = t - start - o
+          words.forEach((w, k) => {
+            const u = E.land(clamp((elapsed - k * stagger) / S.word))
+            w.style.transform = `translateY(${(1 - u) * 140}%)`
+          })
+        }
+        rise(split[0], S.beat1, S.beat1Stagger)
+        rise(split[1], S.beat2, S.beat2Stagger)
+        split[2].forEach((w, k) => {
+          const u = clamp((t - o - S.line - k * S.lineStagger) / S.lineWord)
+          w.style.opacity = u
+          w.style.transform = `translateY(${(1 - E.land(u)) * S.lineRise}em)`
+        })
+        // the caret travels ahead of the words
+        if (!stops.length) return
+        const i = t >= S.beat2 + o - 0.05 ? 1 : 0
+        const st = stops[i]
+        const stagger = i ? S.beat2Stagger : S.beat1Stagger
+        const at = clamp((t - o - (i ? S.beat2 : S.beat1)) / stagger, 0, st.xs.length - 1)
+        const k = Math.min(Math.floor(at), st.xs.length - 2)
+        const x = lerp(st.xs[k], st.xs[k + 1], at - k)
+        caret.style.transform = `translate(${x}px, ${st.y}px)`
+        caret.style.opacity = seg(t, 0.15 + o, 0.15, E.inout) * (1 - seg(t, S.caretOff + o, 0.15, E.inout))
+      }
+
+      // ---------- Layout: the text decides where the drawing goes ----------
+      function extents() {
+        const br = box.getBoundingClientRect()
+        const range = document.createRange()
+        let left = Infinity, bottom = 0
+        for (const el of [beat1El, beat2El, lineEl]) {
+          range.selectNodeContents(el)
+          const r = range.getBoundingClientRect()
+          left = Math.min(left, r.left - br.left - box.clientLeft)
+          bottom = Math.max(bottom, r.bottom - br.top - box.clientTop)
+        }
+        return { left, bottom }
+      }
+
+      function layout() {
+        const bw = box.clientWidth, bh = box.clientHeight
+        const pad = parseFloat(getComputedStyle(text).paddingInlineStart)
+        box.dataset.layout = 'beside'
+        const side = extents()
+        const areaW = side.left - pad * 1.5 - pad
+        const areaH = bh - 2 * pad
+        let x, y, s
+        let behind = false
+        if (bw / bh > 1.3 && areaW >= Math.max(240, areaH * 1.2)) {
+          s = Math.min(areaW / W, (areaH * 1.08) / H, 1.7)
+          x = pad + (areaW - W * s) / 2
+          y = pad + Math.max(0, (areaH - H * s) / 2)
+        } else {
+          box.dataset.layout = 'below'
+          const below = extents()
+          const w = bw - 2 * pad
+          s = Math.min(w / W, 1.4)
+          x = pad + (w - W * s) / 2
+          y = Math.max(below.bottom + pad * 0.5, bh - H * s * 0.9)
+          if (bh - (below.bottom + pad * 0.5) < 0.38 * bh) {
+            // no room under the text: the window plays alone, steps back, then the text is written over it
+            behind = true
+            box.dataset.layout = 'behind'
+            s = Math.min((bw * 0.5) / W, (bh * 0.9) / H)
+            x = pad / 2
+            y = bh - H * s - pad / 2
+          }
+        }
+        L = { x, y, s, ts: Math.max(s, 0.9), behind }
+        scrub.max = endTime()
+        pos.style.transform = `translate(${x}px, ${y}px) scale(${s})`
+        // the toast hangs over the window's top end corner
+        toast.style.left = `${Math.max(8, x - 16 * s)}px`
+        toast.style.top = `${behind ? bh - 8 - 40 * L.ts : Math.max(8, y - 16 * s)}px`
+
+        // caret stops: the start of each beat, then the far edge of each word
+        const frame = $('h1').getBoundingClientRect()
+        const ch = caret.getBoundingClientRect().height
+        stops = [beat1El, beat2El].map((beat, i) => {
+          const rects = split[i].map((w) => w.getBoundingClientRect())
+          const lr = beat.getBoundingClientRect()
+          return { y: lr.top - frame.top + (lr.height - ch) / 2, xs: [rects[0].right - 2 - frame.left, ...rects.map((r) => r.left - frame.left)] }
+        })
+      }
+
+      // ---------- Playback ----------
+      const q = new URLSearchParams(location.search)
+      let speed = +(q.get('speed') || 1)
+      let t = 0, playing = false, last = 0
+      const scrub = $('#scrub')
+      scrub.max = T_END
+      $('#speed').value = String(speed)
+
+      const frame = (now) => {
+        if (!playing) return
+        t = Math.min(endTime(), t + ((now - last) / 1000) * speed)
+        last = now
+        render(t)
+        scrub.value = t
+        if (t >= endTime()) playing = false
+        else requestAnimationFrame(frame)
+      }
+      const play = () => {
+        t = 0
+        last = performance.now()
+        playing = true
+        requestAnimationFrame(frame)
+      }
+      $('#replay').onclick = play
+      $('#speed').onchange = (e) => (speed = +e.target.value)
+      scrub.oninput = () => {
+        playing = false
+        t = +scrub.value
+        render(t)
+      }
+      addEventListener('keydown', (e) => {
+        if (e.key === 'r') play()
+        if (e.key === ' ') {
+          e.preventDefault()
+          playing = !playing
+          if (playing) {
+            last = performance.now()
+            requestAnimationFrame(frame)
+          }
+        }
+      })
+
+      // theme (this page only: it does not save a pick)
+      $('#theme').onclick = () => {
+        const root = document.documentElement
+        const isDark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches
+        root.dataset.theme = isDark ? 'light' : 'dark'
+      }
+
+      // sizes
+      const SIZES = { wide: ['دسکتاپ', 1155, 280], large: ['بزرگ', 1700, 400], tablet: ['تبلت', 820, 300], phone: ['موبایل', 340, 440] }
+      const sizeBox = $('#sizes')
+      const setSize = (key) => {
+        const [, w, h] = SIZES[key]
+        box.style.setProperty('--w', `${w}px`)
+        box.style.setProperty('--h', `${h}px`)
+        $$('button', sizeBox).forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.k === key)))
+        layout()
+        render(t)
+      }
+      for (const [key, [name]] of Object.entries(SIZES)) {
+        const b = document.createElement('button')
+        b.textContent = name
+        b.dataset.k = key
+        b.onclick = () => setSize(key)
+        sizeBox.append(b)
+      }
+
+      // ---------- Start ----------
+      await document.fonts.load('800 1em Vazirmatn')
+      await document.fonts.ready
+      setSize(q.get('size') in SIZES ? q.get('size') : 'wide')
+      new ResizeObserver(() => {
+        layout()
+        render(t)
+      }).observe(box)
+
+      if (q.has('t')) {
+        t = +q.get('t')
+        scrub.value = t
+        render(t)
+      } else if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        t = endTime()
+        scrub.value = t
+        render(t)
+      } else {
+        render(0)
+        setTimeout(play, 300) // the motion delay after the box's reveal
+      }
+    </script>
+  </body>
+</html>

@@ -1,7 +1,7 @@
 import './style.css'
 import sections from './content/sections.js'
 import { createSection } from './core/section.js'
-import { startLoading } from './ui/loading.js'
+import { startLoading, shrinkLoading } from './ui/loading.js'
 import { startScroll } from './core/scroll.js'
 import { createHint } from './ui/hint.js'
 import { createHeader } from './ui/header.js'
@@ -41,6 +41,11 @@ function layout() {
 }
 layout()
 
+// fonts.ready alone can resolve before any text has asked for the font, so load it explicitly.
+const fontReady = Promise.all([document.fonts.load('1em Vazirmatn'), document.fonts.ready])
+// The island's size depends on the font; measure it again once the font is in.
+fontReady.then(layout, () => {})
+
 let resizeTimer
 addEventListener('resize', () => {
   clearTimeout(resizeTimer)
@@ -52,13 +57,13 @@ if (import.meta.env.DEV && params.has('grid')) {
 }
 
 // Content is ready once fonts, the window and the first section's content have
-// loaded. In dev, readiness is held back 15s (TEST: 5s draw + 10s waiting);
-// override with ?delay=ms.
-const delay = import.meta.env.DEV ? Number(params.get('delay') ?? 15000) : 0
+// loaded, and not a moment later. In dev, ?delay=ms holds readiness back on purpose, to look at
+// the loading screen.
+const delay = import.meta.env.DEV ? Number(params.get('delay') ?? 0) : 0
 const loaded = new Promise((r) => (document.readyState === 'complete' ? r() : addEventListener('load', r)))
-const ready = Promise.all([document.fonts.ready, loaded, new Promise((r) => setTimeout(r, delay)), built[1].preload()])
+const ready = Promise.all([fontReady, loaded, new Promise((r) => setTimeout(r, delay)), built[1].preload()])
 
-// Input stays locked until the loading burst ends; then the scroll hint appears.
+// Input stays locked until the loading draw ends; then the scroll hint appears.
 scroller = startScroll(built)
 const hint = createHint(scroller)
 const unlock = scroller.lock()
@@ -68,4 +73,9 @@ startLoading(built[0], ready, matchMedia('(prefers-reduced-motion: reduce)').mat
   unlock()
   hint.show()
   url.start() // opening on a section link jumps there now
+  // Once the visitor has been past it, the loading screen is only half a screen tall.
+  shrinkLoading(built[0], built[1], scroller, () => {
+    hint.hide()
+    header.layout()
+  })
 })

@@ -1,0 +1,54 @@
+/* The shared beats of src/core/motion.js. Colours are tokens; these elements exist only while something moves. */
+
+/* The tip riding the end of a stroke. */
+.tip {
+  fill: var(--accent);
+  pointer-events: none;
+}
+
+/* The same tip in HTML: placed from the top left of a positioned parent. */
+.tip-html {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 5px;
+  height: 5px;
+  margin: -2.5px 0 0 -2.5px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 10px 3px var(--accent-border);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Paste: a selection around an element, with square handles at its corners. */
+.selection {
+  position: absolute;
+  inset: -0.06em -0.14em;
+  border: 1px solid var(--accent);
+  pointer-events: none;
+}
+.selection b {
+  position: absolute;
+  box-sizing: border-box;
+  width: 5px;
+  height: 5px;
+  border: 1px solid var(--accent);
+  background: var(--box-fill, var(--surface));
+}
+.selection b:nth-child(1) {
+  inset-block-start: -3px;
+  inset-inline-start: -3px;
+}
+.selection b:nth-child(2) {
+  inset-block-start: -3px;
+  inset-inline-end: -3px;
+}
+.selection b:nth-child(3) {
+  inset-block-end: -3px;
+  inset-inline-start: -3px;
+}
+.selection b:nth-child(4) {
+  inset-block-end: -3px;
+  inset-inline-end: -3px;
+}

@@ -16,7 +16,7 @@ const easeOutCubic = (t) => 1 - (1 - t) ** 3
 export const glowAt = (u) => (u < 0.15 ? u / 0.15 : u <= 0.75 ? 1 : 1 - (u - 0.75) / 0.25)
 
 // Seeded, so a rebuild draws the same hand-drawn pattern.
-function rng(text) {
+export function rng(text) {
   let h = 2166136261
   for (const ch of text) h = Math.imul(h ^ ch.charCodeAt(0), 16777619)
   let s = h >>> 0
@@ -32,6 +32,7 @@ function rng(text) {
 export function createGrid(geo, { id, mode, top }) {
   const el = document.createElement('div')
   el.className = 'grid'
+  if (geo.rtl) el.dataset.dir = 'rtl'
   el.style.setProperty('--span', `${geo.width + geo.sectionHeight}px`)
 
   const width = geo.width
@@ -74,7 +75,8 @@ export function createGrid(geo, { id, mode, top }) {
       s.setProperty('--cx', `${width / 2 - at}px`)
       s.setProperty('--cy', `${geo.sectionHeight / 2}px`)
     }
-    s.setProperty('--offset', `${at}px`)
+    // Where the waiting shimmer meets the line: along x it starts at the right in RTL.
+    s.setProperty('--offset', `${axis === 'v' && geo.rtl ? width - at : at}px`)
     lines.push(line)
     ;(axis === 'h' ? h : v).set(index, line)
     return line

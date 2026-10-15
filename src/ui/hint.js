@@ -1,5 +1,6 @@
 // The scroll hint: appears once loading is done, fades over the first part of
-// the first screen of scrolling, and returns when back at the top. Until the
+// the first screen of scrolling, and returns when back at the top, until the loading
+// screen has shrunk (shrinkLoading). Until the
 // visitor scrolls, the page also peeks now and then (a small dip and back) to
 // preview the scroll; the first input stops that for good.
 
@@ -43,6 +44,11 @@ export function createHint(scroller) {
       el.dataset.show = ''
       for (const type of ['wheel', 'touchstart', 'pointerdown', 'keydown']) addEventListener(type, stop, { passive: true })
       timer = setTimeout(peek, PEEK_FIRST)
+    },
+    // Gone for good: the loading screen is short now, and the hint would sit over content.
+    hide() {
+      stop()
+      delete el.dataset.show
     },
   }
 }

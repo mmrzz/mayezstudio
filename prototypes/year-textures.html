@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>year textures</title>
+<link rel="stylesheet" href="/src/style.css">
+<style>body{margin:8px;display:grid;grid-template-columns:repeat(2,512px);gap:8px;background:var(--bg)}canvas{width:512px;height:256px;image-rendering:auto;border:1px solid var(--border)}p{grid-column:1/-1;margin:0;font:13px monospace;color:var(--text)}</style></head>
+<body><p id="t">…</p>
+<script type="module">
+import { buildEarth, buildClouds, buildMoon, measureEarth } from '/src/content/sections/intro/year-textures.js'
+const probe=document.createElement('i'); document.body.append(probe)
+const c2=document.createElement('canvas').getContext('2d',{willReadFrequently:true})
+const rd=(v)=>{probe.style.color=v; c2.clearRect(0,0,1,1); c2.fillStyle=getComputedStyle(probe).color; c2.fillRect(0,0,1,1); const d=c2.getImageData(0,0,1,1).data; return [d[0]/255,d[1]/255,d[2]/255]}
+const P={}
+for (const [k,v] of Object.entries({lush:'lush',forest:'forest',tropic:'tropic',dry:'dry',desert:'desert',tundra:'tundra',rock:'rock',snow:'snow',ocean:'ocean',shelf:'shelf',oceanDeep:'ocean-deep',moonLight:'moon-light',moonDark:'moon-dark'})) P[k]=rd(`var(--sp-${v})`)
+const q=new URLSearchParams(location.search); const size=+(q.get('size')||1024)
+const t0=performance.now(); const meas = q.has('measure') ? measureEarth(512) : null
+const tm={}; const lap=(k,f)=>{const a=performance.now();const v=f();tm[k]=Math.round(performance.now()-a);return v}
+const r={earth:lap('earth',()=>buildEarth(P,size)),clouds:lap('clouds',()=>buildClouds(size)),moon:lap('moon',()=>buildMoon(P,size/2))}
+document.getElementById('t').textContent=`earth ${size}: ${JSON.stringify(tm)} ms ${meas?JSON.stringify(meas):''}`
+const draw=(w,h,arr,flipV=true,channel)=>{const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');const img=x.createImageData(w,h);for(let y=0;y<h;y++){const sy=flipV?h-1-y:y;for(let xx=0;xx<w;xx++){const i=(sy*w+xx)*4,o=(y*w+xx)*4;if(channel==null){img.data[o]=arr[i];img.data[o+1]=arr[i+1];img.data[o+2]=arr[i+2]}else{img.data[o]=img.data[o+1]=img.data[o+2]=arr[i+channel]}img.data[o+3]=255}}x.putImageData(img,0,0);document.body.append(c)}
+draw(r.earth.w,r.earth.h,r.earth.day)
+draw(r.earth.w,r.earth.h,r.earth.data,true,2)
+draw(r.clouds.w,r.clouds.h,r.clouds.data,true,0)
+draw(r.moon.w,r.moon.h,r.moon.albedo)
+document.title='done'
+</script></body></html>

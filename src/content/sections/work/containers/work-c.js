@@ -2,7 +2,7 @@ import { load, render } from '../../../../dev/mock.js'
 
 export default {
   id: 'work-c',
-  props: { tone: 3 },
+  look: { fill: 'var(--tone-mint)', edge: 'var(--tone-mint-edge)' },
   load,
   render,
 }
