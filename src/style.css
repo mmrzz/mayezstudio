@@ -419,29 +419,31 @@ body {
   stroke: var(--border);
 }
 
-/* Shimmer: a skewed accent band sweeps across, in step with the grid's waiting
-   state. The border lags the mark slightly so the two read as separate layers. */
+/* Shimmer: a skewed accent band sweeps across while the loading screen is up.
+   transform (not the translate property) so it moves on SVG in mobile browsers.
+   The border lags the mark slightly so the two read as separate layers. */
 .sheen {
-  translate: -400px 0;
-  transform: skewX(-20deg);
+  transform: translateX(-400px) skewX(-20deg);
   opacity: 0.55;
 }
 .sheen--outline {
   opacity: 0.35;
 }
+body:has([data-section='loading'][data-state='loading']) .sheen,
 body:has([data-section='loading'][data-state='waiting']) .sheen {
   animation: sheen 3.2s linear infinite;
 }
+body:has([data-section='loading'][data-state='loading']) .sheen--outline,
 body:has([data-section='loading'][data-state='waiting']) .sheen--outline {
   animation-delay: -0.35s;
 }
 
 @keyframes sheen {
   from {
-    translate: -400px 0;
+    transform: translateX(-400px) skewX(-20deg);
   }
   to {
-    translate: 700px 0;
+    transform: translateX(700px) skewX(-20deg);
   }
 }
 
@@ -758,7 +760,7 @@ body:has([data-section='loading'][data-state='waiting']) .sheen--outline {
   outline: none;
 }
 .section[data-section='loading'] {
-  height: 100svh;
+  height: 100lvh;
 }
 
 .section-layer {

@@ -5,6 +5,7 @@
 
 import {
   DRAW_SMOOTHING,
+  DRAW_SMOOTHING_TOUCH,
   SNAP_COMMIT,
   SNAP_GLIDE_PER_SCREEN,
   SNAP_GLIDE_MIN,
@@ -27,6 +28,8 @@ const SCROLL_KEYS = new Set(['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home
 
 export function startScroll(sections) {
   const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)')
+  const touch = matchMedia('(pointer: coarse)')
+  const smoothing = () => (touch.matches ? DRAW_SMOOTHING_TOUCH : DRAW_SMOOTHING)
   let raf = 0
   let last = 0
 
@@ -165,9 +168,12 @@ export function startScroll(sections) {
   addEventListener('pointerdown', cancelGlide, { passive: true })
   addEventListener('keydown', (e) => SCROLL_KEYS.has(e.key) && cancelGlide())
 
-  // 0 when the section's top enters at the bottom of the screen, 1 when it fills the screen.
+  // 0 when the section's top is one section-height below the top of the layout
+  // viewport, 1 when it fills it. Uses the section's own height (lvh-based), not
+  // innerHeight, so a phone's address bar showing or hiding does not jump the draw.
   function target(s) {
-    return clamp01((innerHeight - s.el.getBoundingClientRect().top) / s.el.offsetHeight)
+    const h = s.el.offsetHeight
+    return clamp01((h - s.el.getBoundingClientRect().top) / h)
   }
 
   // Sections are not all one height (the loading screen shrinks), so find the one at mid-screen.
@@ -188,7 +194,7 @@ export function startScroll(sections) {
       const goal = target(s)
       let p = s.progress
       if (reduceMotion.matches) p = goal > 0 ? 1 : p
-      else p += (goal - p) * (1 - Math.exp(-dt / DRAW_SMOOTHING))
+      else p += (goal - p) * (1 - Math.exp(-dt / smoothing()))
       if (Math.abs(goal - p) < 0.0005) p = goal
       // Never goes down.
       p = Math.max(p, s.progress)

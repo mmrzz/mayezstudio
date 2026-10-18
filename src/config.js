@@ -46,7 +46,9 @@ export const V_START = [0.05, 0.6]
 export const V_EASE = 1.8
 
 // Drawn progress follows the scroll progress with this time constant (ms).
-export const DRAW_SMOOTHING = 120
+// Touch scrolls arrive in coarser steps, so phones use the longer value.
+export const DRAW_SMOOTHING = 140
+export const DRAW_SMOOTHING_TOUCH = 220
 
 // The ready burst on the loading grid lasts this long (ms) before the grid rests.
 // Input is unlocked when it starts; it plays on while the visitor scrolls.

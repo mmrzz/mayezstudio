@@ -8,10 +8,12 @@ export function pickProfile(matches = (query) => matchMedia(query).matches) {
   return PROFILES.find((p) => matches(p.query)) ?? PROFILES[PROFILES.length - 1]
 }
 
-// Measured 100svh: stays put when a phone's address bar hides, unlike innerHeight.
-function measureSvh() {
+// Measured 100lvh: the large viewport, so a section always fills the screen even
+// after a phone's address bar hides. Stays put (unlike innerHeight / dvh), so a
+// chrome show/hide never rebuilds the grid with undrawn lines beside drawn ones.
+function measureLvh() {
   const probe = document.createElement('div')
-  probe.style.cssText = 'position:fixed;top:0;left:0;width:0;height:100svh;visibility:hidden;pointer-events:none'
+  probe.style.cssText = 'position:fixed;top:0;left:0;width:0;height:100lvh;visibility:hidden;pointer-events:none'
   document.body.append(probe)
   const height = probe.offsetHeight
   probe.remove()
@@ -21,7 +23,7 @@ function measureSvh() {
 // clientWidth excludes the scrollbar, so no column ever sits under it.
 export function measureScreen() {
   const root = document.documentElement
-  return { width: root.clientWidth, height: measureSvh(), dpr: devicePixelRatio || 1, dir: root.dir }
+  return { width: root.clientWidth, height: measureLvh(), dpr: devicePixelRatio || 1, dir: root.dir }
 }
 
 // Pixel edges shared by lines and boxes, so they always line up.

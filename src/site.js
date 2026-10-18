@@ -23,8 +23,7 @@ const header = createHeader(built)
 // Recompute the geometry and rebuild every section, keeping each one's progress
 // and drawn state, and the scroll at the same section and offset. A resize that
 // leaves the grid as it was (a phone's address bar showing or hiding: the width
-// and 100svh stay put) only re-places the header, whose hero spot is the
-// viewport's centre.
+// and 100lvh stay put) only re-places the header from the same stable size.
 let scroller = null
 let mounted = ''
 function layout() {
@@ -32,6 +31,8 @@ function layout() {
   const screen = measureScreen()
   const geo = computeGeometry(profile, screen)
   const key = `${profile.name} ${screen.width}x${screen.height}@${screen.dpr}`
+  // Address-bar show/hide keeps this key (lvh). Still re-place the header (font load,
+  // island compact) — its positions use geo.height, so the logo does not jump.
   if (key === mounted) return header.layout(geo)
   mounted = key
   const restore = scroller?.anchor()

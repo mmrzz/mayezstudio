@@ -8,6 +8,7 @@
 
 import {
   DRAW_SMOOTHING,
+  DRAW_SMOOTHING_TOUCH,
   FORM_LOGO,
   FORM_OUTLINE,
   FORM_TITLES,
@@ -73,6 +74,10 @@ export function createHeader(sections) {
     lastGeo = geo
     cellH = geo.cellH
     firstH = loading.offsetHeight || geo.sectionHeight
+    // Screen size from the layout geometry (lvh), not chrome.clientHeight: a phone's
+    // address bar showing or hiding must not jump the logo mid-formation.
+    const screenW = geo.width
+    const screenH = geo.height
     const h = Math.max(ISLAND_MIN, ISLAND_ROWS * cellH)
     const top = Math.max(0, (Math.max(1, Math.ceil(ISLAND_ROWS)) * cellH - h) / 2) // centred on the rows it covers
     chrome.style.setProperty('--island-h', `${h}px`)
@@ -82,22 +87,22 @@ export function createHeader(sections) {
     // at the new height, since the island's padding and text scale with it.
     island.removeAttribute('data-compact')
     setMenu(false)
-    island.toggleAttribute('data-compact', island.offsetWidth + 2 * ISLAND_GUTTER > chrome.clientWidth)
+    island.toggleAttribute('data-compact', island.offsetWidth + 2 * ISLAND_GUTTER > screenW)
 
     // Where the logo ends up (measured from layout, so transforms don't matter).
     const heroW = logoLink.offsetWidth
     const slotCX = island.offsetLeft + slot.offsetLeft + slot.offsetWidth / 2
     const slotCY = island.offsetTop + h / 2
     hero = {
-      x: slotCX - chrome.clientWidth / 2,
-      y: slotCY - chrome.clientHeight / 2,
+      x: slotCX - screenW / 2,
+      y: slotCY - screenH / 2,
       scale: slot.offsetWidth / heroW,
     }
     // A loading screen shorter than the screen: the logo starts centred in it, fitted with a margin.
-    const short = firstH < chrome.clientHeight - 1
+    const short = firstH < screenH - 1
     start = {
       x: 0,
-      y: short ? firstH / 2 - chrome.clientHeight / 2 : 0,
+      y: short ? firstH / 2 - screenH / 2 : 0,
       scale: short ? Math.min(1, (firstH * 0.7) / logoLink.offsetHeight) : 1,
     }
 
@@ -153,6 +158,8 @@ export function createHeader(sections) {
   // Reduced motion: no travelling logo. The header switches between hero and
   // island with a fade when the formation passes the half way point.
   const reduce = matchMedia('(prefers-reduced-motion: reduce)')
+  const touch = matchMedia('(pointer: coarse)')
+  const smoothing = () => (touch.matches ? DRAW_SMOOTHING_TOUCH : DRAW_SMOOTHING)
   let switching = false
   function switchTo(value) {
     if (value === F || switching) return
@@ -175,7 +182,7 @@ export function createHeader(sections) {
       raf = 0
       return switchTo(target >= FORM_LOGO[1] ? 1 : 0)
     }
-    F += (target - F) * (1 - Math.exp(-dt / DRAW_SMOOTHING))
+    F += (target - F) * (1 - Math.exp(-dt / smoothing()))
     if (Math.abs(target - F) < 0.0005) F = target
     apply(F)
     raf = F === target ? 0 : requestAnimationFrame(tick)
